@@ -1,17 +1,17 @@
 {
   "rally_actual_id": "102977",
   "rallys": [
-    { "id": "102977", "nombre": "Rally 1 - Enero", "activo": true },
-    { "id": "", "nombre": "Rally 2 - Febrero", "activo": false },
-    { "id": "", "nombre": "Rally 3 - Marzo", "activo": false },
-    { "id": "", "nombre": "Rally 4 - Abril", "activo": false },
-    { "id": "", "nombre": "Rally 5 - Mayo", "activo": false },
-    { "id": "", "nombre": "Rally 6 - Junio", "activo": false },
-    { "id": "", "nombre": "Rally 7 - Julio", "activo": false },
-    { "id": "", "nombre": "Rally 8 - Agosto", "activo": false },
-    { "id": "", "nombre": "Rally 9 - Septiembre", "activo": false },
-    { "id": "", "nombre": "Rally 10 - Octubre", "activo": false },
-    { "id": "", "nombre": "Rally 11 - Noviembre", "activo": false },
-    { "id": "", "nombre": "Rally 12 - Diciembre", "activo": false }
+    { "id": "102977", "nombre": "Rally 1 - Enero", "placa": "placa_enero.png", "activo": true },
+    { "id": "", "nombre": "Rally 2 - Febrero", "placa": "placa_febrero.png", "activo": false },
+    { "id": "", "nombre": "Rally 3 - Marzo", "placa": "placa_marzo.png", "activo": false },
+    { "id": "", "nombre": "Rally 4 - Abril", "placa": "placa_abril.png", "activo": false },
+    { "id": "", "nombre": "Rally 5 - Mayo", "placa": "placa_mayo.png", "activo": false },
+    { "id": "", "nombre": "Rally 6 - Junio", "placa": "placa_junio.png", "activo": false },
+    { "id": "", "nombre": "Rally 7 - Julio", "placa": "placa_julio.png", "activo": false },
+    { "id": "", "nombre": "Rally 8 - Agosto", "placa": "placa_agosto.png", "activo": false },
+    { "id": "", "nombre": "Rally 9 - Septiembre", "placa": "placa_septiembre.png", "activo": false },
+    { "id": "", "nombre": "Rally 10 - Octubre", "placa": "placa_octubre.png", "activo": false },
+    { "id": "", "nombre": "Rally 11 - Noviembre", "placa": "placa_noviembre.png", "activo": false },
+    { "id": "", "nombre": "Rally 12 - Diciembre", "placa": "placa_diciembre.png", "activo": false }
   ]
 }

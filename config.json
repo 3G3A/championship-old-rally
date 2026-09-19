@@ -1,17 +1,17 @@
 {
   "rally_actual_id": "102977",
   "rallys": [
-    { "id": "102977", "nombre": "Rally 1 - Enero", "placa": "placa_enero.png", "activo": true },
-    { "id": "", "nombre": "Rally 2 - Febrero", "placa": "placa_febrero.png", "activo": false },
-    { "id": "", "nombre": "Rally 3 - Marzo", "placa": "placa_marzo.png", "activo": false },
-    { "id": "", "nombre": "Rally 4 - Abril", "placa": "placa_abril.png", "activo": false },
-    { "id": "", "nombre": "Rally 5 - Mayo", "placa": "placa_mayo.png", "activo": false },
-    { "id": "", "nombre": "Rally 6 - Junio", "placa": "placa_junio.png", "activo": false },
-    { "id": "", "nombre": "Rally 7 - Julio", "placa": "placa_julio.png", "activo": false },
-    { "id": "", "nombre": "Rally 8 - Agosto", "placa": "placa_agosto.png", "activo": false },
-    { "id": "", "nombre": "Rally 9 - Septiembre", "placa": "placa_septiembre.png", "activo": false },
-    { "id": "", "nombre": "Rally 10 - Octubre", "placa": "placa_octubre.png", "activo": false },
-    { "id": "", "nombre": "Rally 11 - Noviembre", "placa": "placa_noviembre.png", "activo": false },
-    { "id": "", "nombre": "Rally 12 - Diciembre", "placa": "placa_diciembre.png", "activo": false }
+    { "id": "102977", "nombre": "Rally 1 - Repsol Rally", "placa": "REPSOL RALLY.png", "activo": true },
+    { "id": "", "nombre": "Rally 2 - Martini International Rally", "placa": "MARTINI INTERNATIONAL RALLY.png", "activo": false },
+    { "id": "", "nombre": "Rally 3 - Pirelli Tarmac Trophy", "placa": "PIRELLI TARMAC TROPHY.png", "activo": false },
+    { "id": "", "nombre": "Rally 4 - Michelin Asfalt Challenge", "placa": "MICHELIN ASFALT CHALLENGE.png", "activo": false },
+    { "id": "", "nombre": "Rally 5 - Mobil 1 Forest Rally", "placa": "MOBIL 1 FOREST RALLY.png", "activo": false },
+    { "id": "", "nombre": "Rally 6 - Camel Rough Gravel Rally", "placa": "CAMEL ROUGH GRAVEL RALLY.png", "activo": false },
+    { "id": "", "nombre": "Rally 7 - Castrol Mud & Fog Rally", "placa": "CASTROL MUD & FOG RALLY.png", "activo": false },
+    { "id": "", "nombre": "Rally 8 - HB International Snow Rally", "placa": "HB INTERNATIONAL SNOW RALLY.png", "activo": false },
+    { "id": "", "nombre": "Rally 9 - Total Energies Night Rally", "placa": "TOTAL ENERGIES NIGHT RALLY.png", "activo": false },
+    { "id": "", "nombre": "Rally 10 - Rally Sparco", "placa": "RALLY SPARCO.png", "activo": false },
+    { "id": "", "nombre": "Rally 11 - Rally Casino", "placa": "RALLY CASINO.png", "activo": false },
+    { "id": "", "nombre": "Rally 12 - Safety Culture Gravel Rally", "placa": "SAFETY CULTURE GRAVEL RALLY.png", "activo": false }
   ]
 }

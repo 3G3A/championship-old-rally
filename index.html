@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campeonato RallySimFans</title>
+    <title>Championship Old Rally</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .active-tab {
@@ -16,30 +16,45 @@
 
     <div class="max-w-5xl mx-auto">
         <!-- Cabecera -->
-        <header class="text-center mb-8 border-b border-gray-800 pb-6">
+        <header class="text-center mb-6 border-b border-gray-800 pb-6">
             <h1 class="text-3xl md:text-5xl font-extrabold text-yellow-500 uppercase tracking-wider mb-2">
-                Campeonato RallySimFans
+                Championship Old Rally
             </h1>
-            <p class="text-gray-400 text-sm md:text-base">Tiempos y clasificaciones actualizados automáticamente</p>
+            <p class="text-gray-400 text-sm md:text-base">Tiempos y clasificaciones oficiales RBR RSF</p>
         </header>
 
-        <!-- Botones de Pestañas -->
-        <div class="flex justify-center gap-3 mb-8">
-            <button id="btn-rally" onclick="cambiarPestana('rally')" 
-                class="active-tab px-6 py-2.5 rounded-lg font-bold transition-all shadow-md">
-                Último Rally
-            </button>
-            <button id="btn-general" onclick="cambiarPestana('general')" 
-                class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-6 py-2.5 rounded-lg font-bold transition-all shadow-md">
-                Clasificación General
-            </button>
+        <!-- Imagen de la Placa del Rally -->
+        <div id="contenedor-placa" class="flex justify-center mb-6 hidden">
+            <img id="imagen-placa" src="" alt="Placa del Rally" class="max-h-48 md:max-h-64 object-contain drop-shadow-xl rounded-lg">
+        </div>
+
+        <!-- Botones de Pestañas y Selector de Rally -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
+            <div class="flex gap-3">
+                <button id="btn-rally" onclick="cambiarPestana('rally')" 
+                    class="active-tab px-6 py-2.5 rounded-lg font-bold transition-all shadow-md">
+                    Rally
+                </button>
+                <button id="btn-general" onclick="cambiarPestana('general')" 
+                    class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-6 py-2.5 rounded-lg font-bold transition-all shadow-md">
+                    Clasificación General
+                </button>
+            </div>
+
+            <!-- Selector para consultar rallies anteriores -->
+            <div class="flex items-center gap-2">
+                <label for="select-rally" class="text-sm font-semibold text-gray-300">Ver Rally:</label>
+                <select id="select-rally" onchange="seleccionarRally(this.value)" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg p-2.5 focus:ring-yellow-500 focus:border-yellow-500 font-semibold">
+                    <!-- Se llena automáticamente con las 12 pruebas -->
+                </select>
+            </div>
         </div>
 
         <!-- TABLA: RESULTADOS DEL RALLY -->
         <div id="vista-rally" class="bg-gray-800 rounded-xl p-4 md:p-6 shadow-2xl border border-gray-700">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-yellow-400 flex items-center gap-2">
-                    <span>🏁</span> Resultados del Rally Actual
+                <h2 id="titulo-rally" class="text-xl font-bold text-yellow-400 flex items-center gap-2">
+                    <span>🏁</span> Resultados del Rally
                 </h2>
                 <span id="info-rally-id" class="text-xs bg-gray-700 text-gray-300 px-3 py-1 rounded-full font-mono">
                     Rally ID: Loading...
@@ -72,7 +87,7 @@
         <div id="vista-general" class="bg-gray-800 rounded-xl p-4 md:p-6 shadow-2xl border border-gray-700 hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-yellow-400 flex items-center gap-2">
-                    <span>🏆</span> Tabla General del Campeonato (12 Rallies)
+                    <span>🏆</span> Tabla General del Campeonato
                 </h2>
             </div>
 
@@ -88,7 +103,7 @@
                     </thead>
                     <tbody id="tabla-general-body" class="divide-y divide-gray-700/50">
                         <tr>
-                            <td colspan="4" class="text-center py-8 text-gray-500">Próximamente...</td>
+                            <td colspan="4" class="text-center py-8 text-gray-500">Aún no hay puntos acumulados en la general.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -97,6 +112,9 @@
     </div>
 
     <script>
+        let configGlobal = null;
+        let resultadosGlobales = null;
+
         function cambiarPestana(vista) {
             const btnRally = document.getElementById('btn-rally');
             const btnGeneral = document.getElementById('btn-general');
@@ -116,43 +134,82 @@
             }
         }
 
-        // Cargar los datos desde el archivo resultados.json generado por Python
-        fetch('resultados.json')
-            .then(response => {
-                if (!response.ok) throw new Error("No se encontró el archivo de resultados.");
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('info-rally-id').textContent = `Rally ID: ${data.rally_actual_id}`;
-                
-                const tbodyRally = document.getElementById('tabla-rally-body');
-                tbodyRally.innerHTML = '';
+        // Cargar todo al inicio
+        Promise.all([
+            fetch('config.json').then(res => res.json()),
+            fetch('resultados.json').then(res => res.json()).catch(() => null)
+        ]).then(([cfg, res]) => {
+            configGlobal = cfg;
+            resultadosGlobales = res;
 
-                if (!data.resultados_rally || data.resultados_rally.length === 0) {
-                    tbodyRally.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">No hay resultados disponibles para este rally aún.</td></tr>';
-                    return;
-                }
-
-                data.resultados_rally.forEach(p => {
-                    const row = `
-                        <tr class="hover:bg-gray-750 transition-colors">
-                            <td class="py-3 px-2 text-center font-bold ${p.posicion <= 3 ? 'text-yellow-400' : 'text-gray-300'}">${p.posicion}º</td>
-                            <td class="py-3 px-4 font-semibold text-white">${p.nombre}</td>
-                            <td class="py-3 px-4 text-sm text-gray-400">${p.coche}</td>
-                            <td class="py-3 px-4 text-right font-mono text-gray-300">${p.tiempo}</td>
-                            <td class="py-3 px-4 text-center text-gray-300">${p.puntos_rally}</td>
-                            <td class="py-3 px-4 text-center text-gray-400">${p.puntos_ps}</td>
-                            <td class="py-3 px-4 text-center font-bold text-yellow-400">${p.puntos_totales}</td>
-                        </tr>
-                    `;
-                    tbodyRally.innerHTML += row;
-                });
-            })
-            .catch(err => {
-                console.log(err);
-                document.getElementById('tabla-rally-body').innerHTML = 
-                    '<tr><td colspan="7" class="text-center py-8 text-yellow-500">Esperando la primera ejecución automática del script para mostrar tiempos...</td></tr>';
+            // Rellenar el desplegable con las 12 pruebas
+            const selector = document.getElementById('select-rally');
+            selector.innerHTML = '';
+            
+            cfg.rallys.forEach(r => {
+                const option = document.createElement('option');
+                option.value = r.id || r.nombre;
+                option.textContent = r.nombre + (r.activo ? ' (En curso)' : '');
+                if (r.activo) option.selected = true;
+                selector.appendChild(option);
             });
+
+            // Mostrar el rally activo por defecto
+            const activo = cfg.rallys.find(r => r.activo) || cfg.rallys[0];
+            cargarDatosRally(activo);
+        });
+
+        function seleccionarRally(idONombre) {
+            if (!configGlobal) return;
+            const rallyEncontrado = configGlobal.rallys.find(r => r.id === idONombre || r.nombre === idONombre);
+            if (rallyEncontrado) {
+                cargarDatosRally(rallyEncontrado);
+            }
+        }
+
+        function cargarDatosRally(rallyInfo) {
+            // Actualizar placa
+            const imgPlaca = document.getElementById('imagen-placa');
+            if (rallyInfo.placa) {
+                imgPlaca.src = rallyInfo.placa;
+                document.getElementById('contenedor-placa').classList.remove('hidden');
+            } else {
+                document.getElementById('contenedor-placa').classList.add('hidden');
+            }
+
+            // Actualizar título e ID
+            document.getElementById('titulo-rally').innerHTML = `<span>🏁</span> ${rallyInfo.nombre}`;
+            document.getElementById('info-rally-id').textContent = rallyInfo.id ? `Rally ID: ${rallyInfo.id}` : 'Próximamente';
+
+            // Rellenar tabla
+            const tbodyRally = document.getElementById('tabla-rally-body');
+            tbodyRally.innerHTML = '';
+
+            // Comprobar si existen datos para este rally en resultados.json
+            const esRallyActual = resultadosGlobales && resultadosGlobales.rally_actual_id === rallyInfo.id;
+            const datos = (resultadosGlobales && resultadosGlobales.historico_rallies && resultadosGlobales.historico_rallies[rallyInfo.id]) 
+                          || (esRallyActual ? resultadosGlobales.resultados_rally : null);
+
+            if (!datos || datos.length === 0) {
+                tbodyRally.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">Este rally aún no se ha disputado o no hay tiempos registrados.</td></tr>';
+                return;
+            }
+
+            datos.forEach(p => {
+                const row = `
+                    <tr class="hover:bg-gray-750 transition-colors">
+                        <td class="py-3 px-2 text-center font-bold ${p.posicion <= 3 ? 'text-yellow-400' : 'text-gray-300'}">${p.posicion}º</td>
+                        <td class="py-3 px-4 font-semibold text-white">${p.nombre}</td>
+                        <td class="py-3 px-4 text-sm text-gray-400">${p.coche}</td>
+                        <td class="py-3 px-4 text-right font-mono text-gray-300">${p.tiempo}</td>
+                        <td class="py-3 px-4 text-center text-gray-300">${p.puntos_rally}</td>
+                        <td class="py-3 px-4 text-center text-gray-400">${p.puntos_ps}</td>
+                        <td class="py-3 px-4 text-center font-bold text-yellow-400">${p.puntos_totales}</td>
+                    </tr>
+                `;
+                tbodyRally.innerHTML += row;
+            });
+        }
     </script>
 </body>
 </html>

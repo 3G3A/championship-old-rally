@@ -62,18 +62,18 @@
                     <span>🏁</span> Resultados del Rally
                 </h2>
 
-                <!-- Sub-Filtros de Categorías (GENERAL, 4WD, FWD, RWD) -->
+                <!-- Sub-Filtros de Categorías para Rally -->
                 <div class="flex flex-wrap gap-2">
-                    <button id="btn-cat-todas" onclick="filtrarCategoria('TODAS')" class="active-subtab border px-3 py-1 rounded-md text-xs font-bold transition-all">
+                    <button id="btn-cat-todas" onclick="filtrarCategoriaRally('TODAS')" class="active-subtab border px-3 py-1 rounded-md text-xs font-bold transition-all">
                         GENERAL
                     </button>
-                    <button id="btn-cat-4wd" onclick="filtrarCategoria('4WD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                    <button id="btn-cat-4wd" onclick="filtrarCategoriaRally('4WD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
                         4WD
                     </button>
-                    <button id="btn-cat-fwd" onclick="filtrarCategoria('FWD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                    <button id="btn-cat-fwd" onclick="filtrarCategoriaRally('FWD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
                         FWD
                     </button>
-                    <button id="btn-cat-rwd" onclick="filtrarCategoria('RWD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                    <button id="btn-cat-rwd" onclick="filtrarCategoriaRally('RWD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
                         RWD
                     </button>
                 </div>
@@ -100,12 +100,28 @@
             </div>
         </div>
 
-        <!-- TABLA: CLASIFICACIÓN GENERAL -->
+        <!-- TABLA: CLASIFICACIÓN GENERAL DEL CAMPEONATO -->
         <div id="vista-general" class="bg-gray-800 rounded-xl p-4 md:p-6 shadow-2xl border border-gray-700 hidden">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 class="text-xl font-bold text-yellow-400 flex items-center gap-2">
                     <span>🏆</span> Tabla General del Campeonato
                 </h2>
+
+                <!-- Sub-Filtros de Categorías para la Clasificación General -->
+                <div class="flex flex-wrap gap-2">
+                    <button id="btn-gen-todas" onclick="filtrarCategoriaGeneral('TODAS')" class="active-subtab border px-3 py-1 rounded-md text-xs font-bold transition-all">
+                        GENERAL
+                    </button>
+                    <button id="btn-gen-4wd" onclick="filtrarCategoriaGeneral('4WD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                        GENERAL 4WD
+                    </button>
+                    <button id="btn-gen-fwd" onclick="filtrarCategoriaGeneral('FWD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                        GENERAL FWD
+                    </button>
+                    <button id="btn-gen-rwd" onclick="filtrarCategoriaGeneral('RWD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                        GENERAL RWD
+                    </button>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -132,7 +148,9 @@
         let configGlobal = null;
         let mapaCochesGlobal = { "4WD": [], "FWD": [], "RWD": [] };
         let datosRallyProcesados = [];
-        let categoriaSeleccionada = 'TODAS';
+        let historicoRallies = []; // Guardará todos los CSV procesados para la General
+        let catRallySeleccionada = 'TODAS';
+        let catGeneralSeleccionada = 'TODAS';
         const puntosEscala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 1];
 
         function cambiarPestana(vista) {
@@ -151,10 +169,11 @@
                 btnRally.className = 'bg-gray-800 hover:bg-gray-700 text-gray-300 px-6 py-2.5 rounded-lg font-bold transition-all shadow-md';
                 vistaGeneral.classList.remove('hidden');
                 vistaRally.classList.add('hidden');
+                calcularClasificacionGeneral();
             }
         }
 
-        // Cargar archivo config.json y coches.json
+        // Cargar config.json y coches.json
         Promise.all([
             fetch('config.json').then(res => res.json()).catch(() => ({ rallys: [] })),
             fetch('coches.json').then(res => res.json()).catch(() => ({ "4WD": [], "FWD": [], "RWD": [] }))
@@ -176,6 +195,7 @@
 
                 const activo = cfg.rallys.find(r => r.activo) || cfg.rallys[0];
                 cargarRallyDesdeCSV(activo);
+                cargarTodosLosRalliesParaGeneral();
             } else {
                 cargarRallyDesdeCSV({ num: 1, nombre: 'Rally 1' });
             }
@@ -214,55 +234,49 @@
                 if (!resCsv.ok) throw new Error("Archivo CSV no encontrado");
 
                 const textoCsv = await resCsv.text();
-                const lineas = textoCsv.split('\n').filter(l => l.trim() !== '');
+                datosRallyProcesados = procesarTextoCSV(textoCsv);
 
-                datosRallyProcesados = [];
-
-                for (let i = 1; i < lineas.length; i++) {
-                    // CAMBIO APLICADO: Separa por dos puntos (:) en lugar de coma (,)
-                    const cols = lineas[i].split(':').map(c => c.replace(/"/g, '').trim());
-                    if (cols.length < 7) continue;
-
-                    const piloto = cols[2] || cols[3]; // user_name o real_name
-                    const coche = cols[5];
-                    const tiempo = cols[6]; // time3
-
-                    if (!piloto || !tiempo || tiempo === '00:00.000') continue;
-
-                    // Determinar Categoría según coches.json
-                    let cat = '4WD';
-                    if (mapaCochesGlobal.FWD && mapaCochesGlobal.FWD.includes(coche)) cat = 'FWD';
-                    else if (mapaCochesGlobal.RWD && mapaCochesGlobal.RWD.includes(coche)) cat = 'RWD';
-                    else if (mapaCochesGlobal['4WD'] && mapaCochesGlobal['4WD'].includes(coche)) cat = '4WD';
-
-                    datosRallyProcesados.push({ piloto, coche, tiempo, categoria: cat });
-                }
-
-                filtrarCategoria(categoriaSeleccionada);
+                filtrarCategoriaRally(catRallySeleccionada);
 
             } catch (err) {
                 tbodyRally.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Este rally aún no se ha disputado o falta subir el archivo rally_' + numRally + '.csv</td></tr>';
             }
         }
 
-        function filtrarCategoria(cat) {
-            categoriaSeleccionada = cat;
+        function procesarTextoCSV(textoCsv) {
+            const lineas = textoCsv.split('\n').filter(l => l.trim() !== '');
+            const lista = [];
 
-            const btns = {
-                'TODAS': 'btn-cat-todas',
-                '4WD': 'btn-cat-4wd',
-                'FWD': 'btn-cat-fwd',
-                'RWD': 'btn-cat-rwd'
-            };
+            for (let i = 1; i < lineas.length; i++) {
+                const cols = lineas[i].split(':').map(c => c.replace(/"/g, '').trim());
+                if (cols.length < 7) continue;
 
+                const piloto = cols[2] || cols[3];
+                const coche = cols[5];
+                const tiempo = cols[6];
+
+                if (!piloto || !tiempo || tiempo === '00:00.000') continue;
+
+                let cat = '4WD';
+                if (mapaCochesGlobal.FWD && mapaCochesGlobal.FWD.includes(coche)) cat = 'FWD';
+                else if (mapaCochesGlobal.RWD && mapaCochesGlobal.RWD.includes(coche)) cat = 'RWD';
+                else if (mapaCochesGlobal['4WD'] && mapaCochesGlobal['4WD'].includes(coche)) cat = '4WD';
+
+                lista.push({ piloto, coche, tiempo, categoria: cat });
+            }
+            return lista;
+        }
+
+        function filtrarCategoriaRally(cat) {
+            catRallySeleccionada = cat;
+
+            const btns = { 'TODAS': 'btn-cat-todas', '4WD': 'btn-cat-4wd', 'FWD': 'btn-cat-fwd', 'RWD': 'btn-cat-rwd' };
             Object.keys(btns).forEach(key => {
                 const el = document.getElementById(btns[key]);
                 if (el) {
-                    if (key === cat) {
-                        el.className = 'active-subtab border px-3 py-1 rounded-md text-xs font-bold transition-all';
-                    } else {
-                        el.className = 'bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all';
-                    }
+                    el.className = (key === cat) 
+                        ? 'active-subtab border px-3 py-1 rounded-md text-xs font-bold transition-all'
+                        : 'bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all';
                 }
             });
 
@@ -294,6 +308,83 @@
                     </tr>
                 `;
                 tbodyRally.innerHTML += row;
+            });
+        }
+
+        // Cargar todos los archivos CSV existentes para acumular puntos en la General
+        async function cargarTodosLosRalliesParaGeneral() {
+            historicoRallies = [];
+            if (!configGlobal || !configGlobal.rallys) return;
+
+            for (const r of configGlobal.rallys) {
+                try {
+                    const res = await fetch(`rally_${r.num}.csv`);
+                    if (res.ok) {
+                        const txt = await res.text();
+                        const datos = procesarTextoCSV(txt);
+                        if (datos.length > 0) {
+                            historicoRallies.push(datos);
+                        }
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function filtrarCategoriaGeneral(cat) {
+            catGeneralSeleccionada = cat;
+
+            const btns = { 'TODAS': 'btn-gen-todas', '4WD': 'btn-gen-4wd', 'FWD': 'btn-gen-fwd', 'RWD': 'btn-gen-rwd' };
+            Object.keys(btns).forEach(key => {
+                const el = document.getElementById(btns[key]);
+                if (el) {
+                    el.className = (key === cat) 
+                        ? 'active-subtab border px-3 py-1 rounded-md text-xs font-bold transition-all'
+                        : 'bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all';
+                }
+            });
+
+            calcularClasificacionGeneral();
+        }
+
+        function calcularClasificacionGeneral() {
+            const acumulado = {};
+
+            historicoRallies.forEach(rally => {
+                let lista = rally;
+                if (catGeneralSeleccionada !== 'TODAS') {
+                    lista = rally.filter(p => p.categoria === catGeneralSeleccionada);
+                }
+
+                lista.forEach((p, index) => {
+                    const pts = index < puntosEscala.length ? puntosEscala[index] : 1;
+                    if (!acumulado[p.piloto]) {
+                        acumulado[p.piloto] = { piloto: p.piloto, puntos: 0, rallies: 0 };
+                    }
+                    acumulado[p.piloto].puntos += pts;
+                    acumulado[p.piloto].rallies += 1;
+                });
+            });
+
+            const ranking = Object.values(acumulado).sort((a, b) => b.puntos - a.puntos);
+            const tbodyGen = document.getElementById('tabla-general-body');
+            tbodyGen.innerHTML = '';
+
+            if (ranking.length === 0) {
+                tbodyGen.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-400">Aún no hay puntos acumulados en esta categoría.</td></tr>';
+                return;
+            }
+
+            ranking.forEach((p, index) => {
+                const pos = index + 1;
+                const row = `
+                    <tr class="hover:bg-gray-750 transition-colors border-b border-gray-700/30">
+                        <td class="py-3 px-2 text-center font-bold ${pos <= 3 ? 'text-yellow-400' : 'text-gray-300'}">${pos}º</td>
+                        <td class="py-3 px-4 font-semibold text-white">${p.piloto}</td>
+                        <td class="py-3 px-4 text-center text-gray-300">${p.rallies}</td>
+                        <td class="py-3 px-4 text-center font-bold text-yellow-400">${p.puntos}</td>
+                    </tr>
+                `;
+                tbodyGen.innerHTML += row;
             });
         }
     </script>

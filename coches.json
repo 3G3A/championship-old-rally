@@ -1,27 +1,35 @@
 {
   "4WD": [
-    "Toyota Yaris WRC 2018",
-    "Hyundai i20 Coupe WRC 2021",
-    "Ford Fiesta RS WRC 2014",
-    "Hyundai i20 Coupe WRC 2017",
-    "Mini JCW WRC",
-    "Citroen C3 WRC 2017",
-    "Ford Fiesta WRC 2019",
-    "Citroen DS3 WRC",
-    "VW Polo R WRC 2016"
-  ],
-  "FWD": [
-    "Ford Fiesta R2",
-    "Peugeot 208 R2",
-    "Renault Clio R3",
-    "Citroen C2 R2",
-    "Suzuki Swift S1600"
+    "Skoda Fabia RS Rally2 2024",
+    "Toyota GR Yaris Rally2 2024",
+    "Hyundai i20 N Rally2 2023",
+    "Ford Fiesta Rally2 2023",
+    "Skoda Fabia R5 evo 2019",
+    "Citroen C3 R5 2018",
+    "Skoda Fabia R5 2015",
+    "Ford Fiesta R5 2014",
+    "Hyundai i20 R5 2016",
+    "Peugeot 208 T16 R5 2015",
+    "VW Polo GTI R5 2018",
+    "Citroen DS3 R5 2014"
   ],
   "RWD": [
-    "BMW M3 E30",
-    "Ford Escort RS2000",
-    "Porsche 911 GT3",
-    "Opel Ascona 400",
-    "Lancia 037"
+    "Porsche 911 GT3 RS (2010) RGT 2015",
+    "Lada VFTS GrpB 1986",
+    "Opel Manta 400 GrpB 1984",
+    "Porsche 911 SC RS GrpB 1985",
+    "Ford Escort Mk II RS Grp4 1978",
+    "Fiat 131 Abarth Grp4 1978",
+    "Opel Ascona 400 Grp4 1982",
+    "Porsche 911 SC 3.0 Grp4 1981",
+    "Lancia Stratos HF Grp4 1976"
+  ],
+  "FWD": [
+    "Peugeot 208 R2 2012",
+    "Citroen C2 R2 Max 2011",
+    "Renault Twingo R2 Evo 2012",
+    "Peugeot 208 Rally4 2021",
+    "Renault Clio Rally4 2021",
+    "Ford Fiesta Rally4 2021"
   ]
 }

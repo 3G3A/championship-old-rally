@@ -35,7 +35,7 @@
 
         <!-- Botones de Pestañas Principales y Selector de Rally -->
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
-            <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+            <div class="flex flex-wrap gap-2 sm:gap-3">
                 <button id="btn-rally" onclick="cambiarPestana('rally')" 
                     class="active-tab px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base">
                     Rally
@@ -45,13 +45,13 @@
                     Clasificación General
                 </button>
                 <button id="btn-info" onclick="cambiarPestana('info')" 
-                    class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base flex items-center gap-2">
-                    <span>ℹ️</span> Información
+                    class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base">
+                    Información
                 </button>
             </div>
 
             <!-- Selector para consultar rallies -->
-            <div class="flex items-center gap-2" id="contenedor-selector-rally">
+            <div id="select-rally-container" class="flex items-center gap-2">
                 <label for="select-rally" class="text-sm font-semibold text-gray-300">Ver Rally:</label>
                 <select id="select-rally" onchange="seleccionarRally(this.value)" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg p-2.5 focus:ring-yellow-500 focus:border-yellow-500 font-semibold">
                     <!-- Se llena automáticamente -->
@@ -148,112 +148,73 @@
         </div>
 
         <!-- SECCIÓN: INFORMACIÓN DEL CAMPEONATO -->
-        <div id="vista-info" class="bg-gray-800 rounded-xl p-6 md:p-8 shadow-2xl border border-gray-700 hidden">
-            <!-- Pestaña Español -->
-            <article class="mb-10">
-                <h2 class="text-2xl font-bold text-yellow-400 pb-2 mb-4 border-b border-gray-700 flex items-center gap-2">
-                    <span>🇪🇸</span> INFORMACIÓN DEL CAMPEONATO
+        <div id="vista-info" class="bg-gray-800 rounded-xl p-6 md:p-8 shadow-2xl border border-gray-700 hidden text-gray-300 space-y-8">
+            <!-- Sección Español -->
+            <div>
+                <h2 class="text-xl font-bold text-yellow-400 border-b border-gray-700 pb-2 mb-4 flex items-center gap-2">
+                    <span>📌</span> ESP - INFORMACIÓN DEL CAMPEONATO
                 </h2>
-                
-                <ul class="space-y-3 text-gray-300 mb-6">
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">•</span>
-                        <span><strong class="text-white">Participación:</strong> Libre y gratuita para todos los pilotos.</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">•</span>
-                        <span><strong class="text-white">Categorías:</strong> 3 divisiones a libre elección (<strong class="text-yellow-400">4WD, FWD, RWD</strong>).</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">•</span>
-                        <span><strong class="text-white">Calendario:</strong> 12 Rallies en total, a razón de <strong class="text-white">1 prueba por mes</strong>.</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">•</span>
-                        <div>
-                            <strong class="text-white">Clasificaciones:</strong>
-                            <ul class="pl-4 mt-1 space-y-1 text-sm text-gray-400">
-                                <li>- Clasificación <strong class="text-gray-200">GENERAL</strong> (absoluta).</li>
-                                <li>- Clasificación <strong class="text-gray-200">GENERAL por Categorías</strong> (4WD, FWD y RWD).</li>
-                            </ul>
-                        </div>
+                <ul class="space-y-2 text-sm md:text-base">
+                    <li>• <strong class="text-white">Participación:</strong> Libre y gratuita para todos los pilotos.</li>
+                    <li>• <strong class="text-white">Categorías:</strong> 3 divisiones a libre elección (<strong class="text-yellow-400">4WD, FWD, RWD</strong>).</li>
+                    <li>• <strong class="text-white">Calendario:</strong> 12 Rallies en total, a razón de <strong class="text-white">1 prueba por mes</strong>.</li>
+                    <li>• <strong class="text-white">Clasificaciones:</strong>
+                        <ul class="pl-6 mt-1 space-y-1 text-sm text-gray-400">
+                            <li>- Clasificación <strong>GENERAL</strong> (absoluta).</li>
+                            <li>- Clasificación <strong>GENERAL por Categorías</strong> (4WD, FWD y RWD).</li>
+                        </ul>
                     </li>
                 </ul>
 
-                <h3 class="text-lg font-semibold text-white mb-2">Sistema de participación y puntuación por categorías:</h3>
-                <p class="text-gray-300 leading-relaxed mb-4">
-                    Los pilotos tienen total libertad para <strong>cambiar de categoría en cada prueba</strong>. La puntuación acumulada se reflejará tanto en la tabla General absoluta como en la tabla General de la división correspondiente a la categoría elegida en cada rally.
-                </p>
-
-                <div class="bg-gray-900/60 border-l-4 border-yellow-500 p-4 rounded-r-lg mb-6">
-                    <p class="text-sm text-gray-300">
-                        <strong class="text-yellow-400 block mb-1">Ejemplo práctico:</strong>
-                        Si el <em>Piloto 1</em> compite en un rally con un vehículo <strong>4WD</strong> y en la siguiente prueba con un <strong>RWD</strong>, sus puntos sumarán tanto para la <strong>GENERAL del campeonato</strong> (a lo largo de los 12 Rallies) como para las clasificaciones específicas de <strong>4WD</strong> y <strong>RWD</strong> en las pruebas que haya disputado con cada uno.
+                <div class="mt-4 bg-gray-900/60 p-4 rounded-lg border border-gray-700/80">
+                    <h3 class="font-bold text-white mb-2 text-sm md:text-base">Sistema de participación y puntuación por categorías:</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        Los pilotos tienen total libertad para <strong>cambiar de categoría en cada prueba</strong>. La puntuación acumulada se reflejará tanto en la tabla General absoluta como en la tabla General de la división correspondiente a la categoría elegida en cada rally.
                     </p>
-                </div>
-
-                <div class="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-lg text-sm text-yellow-200 flex items-start gap-3">
-                    <span class="text-xl">📌</span>
-                    <div>
-                        <strong class="block text-yellow-400 mb-0.5">Acceso a las pruebas:</strong>
-                        El enlace directo a cada rally se publicará en este mismo apartado una vez creada la prueba, facilitando así el acceso a todos los participantes interesados.
+                    <div class="mt-3 bg-gray-800/80 p-3 rounded border-l-4 border-yellow-500 text-xs md:text-sm italic text-gray-300">
+                        <strong>Ejemplo práctico:</strong> Si el <em>Piloto 1</em> compite en un rally con un vehículo <strong>4WD</strong> y en la siguiente prueba con un <strong>RWD</strong>, sus puntos sumarán tanto para la <strong>GENERAL del campeonato</strong> (a lo largo de los 12 Rallies) como para las clasificaciones específicas de <strong>4WD</strong> y <strong>RWD</strong> en las pruebas disputadas con cada uno.
                     </div>
                 </div>
-            </article>
 
-            <hr class="border-gray-700 my-8">
+                <p class="mt-4 text-xs md:text-sm text-yellow-400/90 italic">
+                    📌 <strong>Acceso a las pruebas:</strong> El enlace directo a cada rally se publicará en este apartado una vez creada la prueba en RSF.
+                </p>
+            </div>
 
-            <!-- English Tab -->
-            <article>
-                <h2 class="text-2xl font-bold text-yellow-400 pb-2 mb-4 border-b border-gray-700 flex items-center gap-2">
-                    <span>🇬🇧</span> CHAMPIONSHIP INFORMATION
+            <!-- Separador -->
+            <hr class="border-gray-700/60">
+
+            <!-- Sección Inglés -->
+            <div>
+                <h2 class="text-xl font-bold text-yellow-400 border-b border-gray-700 pb-2 mb-4 flex items-center gap-2">
+                    <span>🌐</span> ENG - CHAMPIONSHIP INFORMATION
                 </h2>
-                
-                <ul class="space-y-3 text-gray-300 mb-6">
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">•</span>
-                        <span><strong class="text-white">Participation:</strong> Free and open to all drivers.</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">•</span>
-                        <span><strong class="text-white">Categories:</strong> 3 divisions available to choose from (<strong class="text-yellow-400">4WD, FWD, RWD</strong>).</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">•</span>
-                        <span><strong class="text-white">Calendar:</strong> 12 Rallies in total (<strong class="text-white">1 event per month</strong>).</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500">•</span>
-                        <div>
-                            <strong class="text-white">Standings:</strong>
-                            <ul class="pl-4 mt-1 space-y-1 text-sm text-gray-400">
-                                <li>- <strong class="text-gray-200">OVERALL</strong> Championship Standings.</li>
-                                <li>- <strong class="text-gray-200">Category Standings</strong> (4WD, FWD, and RWD).</li>
-                            </ul>
-                        </div>
+                <ul class="space-y-2 text-sm md:text-base">
+                    <li>• <strong class="text-white">Participation:</strong> Free and open to all drivers.</li>
+                    <li>• <strong class="text-white">Categories:</strong> 3 divisions available to choose from (<strong class="text-yellow-400">4WD, FWD, RWD</strong>).</li>
+                    <li>• <strong class="text-white">Calendar:</strong> 12 Rallies in total (<strong class="text-white">1 event per month</strong>).</li>
+                    <li>• <strong class="text-white">Standings:</strong>
+                        <ul class="pl-6 mt-1 space-y-1 text-sm text-gray-400">
+                            <li>- <strong>OVERALL</strong> Championship Standings.</li>
+                            <li>- <strong>Category Standings</strong> (4WD, FWD, and RWD).</li>
+                        </ul>
                     </li>
                 </ul>
 
-                <h3 class="text-lg font-semibold text-white mb-2">Category Switching & Scoring System:</h3>
-                <p class="text-gray-300 leading-relaxed mb-4">
-                    Drivers are free to <strong>change categories for each event</strong>. Points scored in each rally will count towards the Overall Championship table as well as the specific Category standings for the vehicle driven in that race.
-                </p>
-
-                <div class="bg-gray-900/60 border-l-4 border-yellow-500 p-4 rounded-r-lg mb-6">
-                    <p class="text-sm text-gray-300">
-                        <strong class="text-yellow-400 block mb-1">Example:</strong>
-                        If <em>Driver 1</em> competes in one rally using a <strong>4WD</strong> car and enters the next with a <strong>RWD</strong> car, their points will count toward the <strong>OVERALL standings</strong> (across all 12 Rallies) as well as the respective <strong>4WD</strong> and <strong>RWD</strong> category standings for the rounds completed in each class.
+                <div class="mt-4 bg-gray-900/60 p-4 rounded-lg border border-gray-700/80">
+                    <h3 class="font-bold text-white mb-2 text-sm md:text-base">Category Switching & Scoring System:</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        Drivers are free to <strong>change categories for each event</strong>. Points scored in each rally will count towards the Overall Championship table as well as the specific Category standings for the vehicle driven in that race.
                     </p>
-                </div>
-
-                <div class="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-lg text-sm text-yellow-200 flex items-start gap-3">
-                    <span class="text-xl">📌</span>
-                    <div>
-                        <strong class="block text-yellow-400 mb-0.5">Event Access:</strong>
-                        Direct links to each rally will be posted here as soon as the event is created for easy access by all interested participants.
+                    <div class="mt-3 bg-gray-800/80 p-3 rounded border-l-4 border-yellow-500 text-xs md:text-sm italic text-gray-300">
+                        <strong>Example:</strong> If <em>Driver 1</em> competes in one rally using a <strong>4WD</strong> car and enters the next with a <strong>RWD</strong> car, their points will count toward the <strong>OVERALL standings</strong> (across all 12 Rallies) as well as the respective <strong>4WD</strong> and <strong>RWD</strong> category standings for the rounds completed in each class.
                     </div>
                 </div>
-            </article>
+
+                <p class="mt-4 text-xs md:text-sm text-yellow-400/90 italic">
+                    📌 <strong>Event Access:</strong> Direct links to each rally will be posted here as soon as the event is created.
+                </p>
+            </div>
         </div>
     </div>
 
@@ -261,7 +222,7 @@
         let configGlobal = null;
         let mapaCochesGlobal = { "4WD": [], "FWD": [], "RWD": [] };
         let datosRallyProcesados = [];
-        let historicoRallies = []; // Guardará todos los CSV procesados para la General
+        let historicoRallies = [];
         let catRallySeleccionada = 'TODAS';
         let catGeneralSeleccionada = 'TODAS';
         const puntosEscala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 1];
@@ -270,18 +231,16 @@
             const btnRally = document.getElementById('btn-rally');
             const btnGeneral = document.getElementById('btn-general');
             const btnInfo = document.getElementById('btn-info');
-            
             const vistaRally = document.getElementById('vista-rally');
             const vistaGeneral = document.getElementById('vista-general');
             const vistaInfo = document.getElementById('vista-info');
-            const selectorRally = document.getElementById('contenedor-selector-rally');
+            const contPlaca = document.getElementById('contenedor-placa');
+            const selectorCont = document.getElementById('select-rally-container');
 
-            // Reset de botones
             btnRally.className = 'bg-gray-800 hover:bg-gray-700 text-gray-300 px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base';
             btnGeneral.className = 'bg-gray-800 hover:bg-gray-700 text-gray-300 px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base';
-            btnInfo.className = 'bg-gray-800 hover:bg-gray-700 text-gray-300 px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base flex items-center gap-2';
+            btnInfo.className = 'bg-gray-800 hover:bg-gray-700 text-gray-300 px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base';
 
-            // Ocultar todas las vistas
             vistaRally.classList.add('hidden');
             vistaGeneral.classList.add('hidden');
             vistaInfo.classList.add('hidden');
@@ -289,20 +248,22 @@
             if (vista === 'rally') {
                 btnRally.className = 'active-tab px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base';
                 vistaRally.classList.remove('hidden');
-                selectorRally.classList.remove('hidden');
+                contPlaca.classList.remove('hidden');
+                selectorCont.classList.remove('hidden');
             } else if (vista === 'general') {
                 btnGeneral.className = 'active-tab px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base';
                 vistaGeneral.classList.remove('hidden');
-                selectorRally.classList.add('hidden');
+                contPlaca.classList.add('hidden');
+                selectorCont.classList.add('hidden');
                 calcularClasificacionGeneral();
             } else if (vista === 'info') {
-                btnInfo.className = 'active-tab px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base flex items-center gap-2';
+                btnInfo.className = 'active-tab px-5 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm md:text-base';
                 vistaInfo.classList.remove('hidden');
-                selectorRally.classList.add('hidden');
+                contPlaca.classList.add('hidden');
+                selectorCont.classList.add('hidden');
             }
         }
 
-        // Cargar config.json y coches.json
         Promise.all([
             fetch('config.json').then(res => res.json()).catch(() => ({ rallys: [] })),
             fetch('coches.json').then(res => res.json()).catch(() => ({ "4WD": [], "FWD": [], "RWD": [] }))
@@ -345,11 +306,14 @@
 
         async function cargarRallyDesdeCSV(rallyInfo) {
             const imgPlaca = document.getElementById('imagen-placa');
-            if (rallyInfo.placa) {
+            const contPlaca = document.getElementById('contenedor-placa');
+
+            if (rallyInfo.placa && rallyInfo.placa.trim() !== '') {
                 imgPlaca.src = rallyInfo.placa;
-                document.getElementById('contenedor-placa').classList.remove('hidden');
+                contPlaca.classList.remove('hidden');
             } else {
-                document.getElementById('contenedor-placa').classList.add('hidden');
+                imgPlaca.src = '';
+                contPlaca.classList.add('hidden');
             }
 
             document.getElementById('titulo-rally').innerHTML = `<span>🏁</span> ${rallyInfo.nombre}`;
@@ -368,6 +332,7 @@
                 filtrarCategoriaRally(catRallySeleccionada);
 
             } catch (err) {
+                datosRallyProcesados = [];
                 tbodyRally.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Este rally aún no se ha disputado o falta subir el archivo rally_' + numRally + '.csv</td></tr>';
             }
         }
@@ -440,7 +405,6 @@
             });
         }
 
-        // Cargar todos los archivos CSV existentes para acumular puntos en la General
         async function cargarTodosLosRalliesParaGeneral() {
             historicoRallies = [];
             if (!configGlobal || !configGlobal.rallys) return;

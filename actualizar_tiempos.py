@@ -7,8 +7,9 @@ async def obtener_tiempos_playwright(rally_id):
     if not rally_id:
         return []
 
-    # Añadimos &cg=7 para forzar la tabla de Final Standings (Clasificación General)
-    url = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}&cg=7"
+    # Probar primero la URL directa del modulo de resultados en la general
+    url_directa = f"https://www.rallysimfans.hu/rbr/rally_results.php?rally_id={rally_id}&cg=7"
+    url_contenedor = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}&cg=7"
     resultados = []
 
     async with async_playwright() as p:
@@ -18,63 +19,77 @@ async def obtener_tiempos_playwright(rally_id):
         )
         page = await context.new_page()
 
-        print(f"Cargando Clasificación General en RSF: {url}")
+        print(f"Probando lectura directa de módulo: {url_directa}")
         try:
-            await page.goto(url, wait_until="networkidle", timeout=60000)
-            await page.wait_for_timeout(4000)
+            await page.goto(url_directa, wait_until="networkidle", timeout=30000)
+            await page.wait_for_timeout(2000)
 
-            tables = await page.query_selector_all("table")
-            print(f"Tablas encontradas en pantalla: {len(tables)}")
+            rows = await page.query_selector_all("tr")
+            print(f"Filas encontradas en modulo directo: {len(rows)}")
+
+            # Si no hay datos en el directo, cargar el contenedor completo e interactuar
+            if len(rows) < 5:
+                print(f"Cargando pagina contenedora completa: {url_contenedor}")
+                await page.goto(url_contenedor, wait_until="networkidle", timeout=60000)
+                await page.wait_for_timeout(3000)
+
+                # Intentar localizar botones o selectores para enviar consulta
+                botones = await page.query_selector_all("input[type='submit'], button, a")
+                for btn in botones:
+                    txt = (await btn.text_content() or "").lower()
+                    val = (await btn.get_attribute("value") or "").lower()
+                    if "result" in txt or "result" in val or "see" in txt or "see" in val:
+                        print("Pulsando botón de ver resultados...")
+                        await btn.click()
+                        await page.wait_for_timeout(4000)
+                        break
+
+                rows = await page.query_selector_all("tr")
+                print(f"Filas tras interaccion: {len(rows)}")
 
             posicion_real = 1
             puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
-            for t_idx, table in enumerate(tables):
-                rows = await table.query_selector_all("tr")
-                
-                # Ignorar tablas pequeñas (menús, pies de página)
-                if len(rows) < 3:
+            for row in rows:
+                cells = await row.query_selector_all("td, th")
+                cell_texts = [((await c.text_content()) or "").strip() for c in cells]
+
+                if len(cell_texts) < 3:
                     continue
 
-                for row in rows:
-                    cells = await row.query_selector_all("td, th")
-                    cell_texts = [((await c.text_content()) or "").strip() for c in cells]
+                texto_completo = " ".join(cell_texts).lower()
+                if any(bad in texto_completo for bad in ['home', 'hotlap', 'download', 'championship', 'menu', 'discord', 'facebook', 'admins']):
+                    continue
 
-                    if len(cell_texts) < 3:
-                        continue
+                pos_limpia = re.sub(r'\D', '', cell_texts[0])
+                tiene_tiempo = any(re.search(r'\d+:\d{2}', t) for t in cell_texts)
 
-                    # Verificar si la fila tiene formato de tiempo (mm:ss.ms o hh:mm:ss)
-                    tiene_tiempo = any(re.search(r'\d+:\d{2}', t) for t in cell_texts)
-                    
-                    # Limpiar la primera celda para obtener el número de posición
-                    pos_limpia = re.sub(r'\D', '', cell_texts[0])
+                if pos_limpia.isdigit() and tiene_tiempo:
+                    piloto = cell_texts[1] if len(cell_texts) > 1 else "Piloto"
+                    coche = cell_texts[2] if len(cell_texts) > 2 else "N/A"
+                    tiempo = "--:--.--"
 
-                    if pos_limpia.isdigit() and tiene_tiempo:
-                        piloto = cell_texts[1] if len(cell_texts) > 1 else "Piloto"
-                        coche = cell_texts[2] if len(cell_texts) > 2 else "N/A"
-                        tiempo = "--:--.--"
+                    for txt in reversed(cell_texts):
+                        if re.search(r'\d+:\d{2}', txt):
+                            tiempo = txt
+                            break
 
-                        for txt in reversed(cell_texts):
-                            if re.search(r'\d+:\d{2}', txt):
-                                tiempo = txt
-                                break
+                    pts_rally = puntos_escala[posicion_real - 1] if posicion_real <= len(puntos_escala) else 1
 
-                        pts_rally = puntos_escala[posicion_real - 1] if posicion_real <= len(puntos_escala) else 1
-
-                        resultados.append({
-                            "posicion": posicion_real,
-                            "nombre": piloto,
-                            "coche": coche,
-                            "tiempo": tiempo,
-                            "puntos_rally": pts_rally,
-                            "puntos_ps": 0,
-                            "puntos_totales": pts_rally
-                        })
-                        print(f"  [+] ¡PILOTO REGISTRADO! #{posicion_real}: {piloto} | {coche} | {tiempo}")
-                        posicion_real += 1
+                    resultados.append({
+                        "posicion": posicion_real,
+                        "nombre": piloto,
+                        "coche": coche,
+                        "tiempo": tiempo,
+                        "puntos_rally": pts_rally,
+                        "puntos_ps": 0,
+                        "puntos_totales": pts_rally
+                    })
+                    print(f"  [+] Piloto registrado #{posicion_real}: {piloto} | {coche} | {tiempo}")
+                    posicion_real += 1
 
         except Exception as e:
-            print(f"Error procesando RSF con Playwright: {e}")
+            print(f"Error extrayendo datos: {e}")
         finally:
             await browser.close()
 
@@ -92,7 +107,7 @@ def main():
     resultados = asyncio.run(obtener_tiempos_playwright(rally_id))
 
     if not resultados and 'pilotos_manuales' in config:
-        print("Usando datos de respaldo de config.json")
+        print("Usando datos de respaldo")
         resultados = config.get('pilotos_manuales', [])
 
     datos_salida = {

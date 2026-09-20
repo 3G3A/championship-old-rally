@@ -7,7 +7,9 @@ async def obtener_tiempos_playwright(rally_id):
     if not rally_id:
         return []
 
-    url = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}"
+    # Cargar directamente el frame central de la tabla de resultados
+    url_directa = f"https://www.rallysimfans.hu/rbr/rally_results.php?rally_id={rally_id}"
+    url_contenedor = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}"
     resultados = []
 
     async with async_playwright() as p:
@@ -17,24 +19,42 @@ async def obtener_tiempos_playwright(rally_id):
         )
         page = await context.new_page()
 
-        print(f"Cargando RSF en navegador virtual: {url}")
+        print(f"Cargando navegador en página contenedora: {url_contenedor}")
         try:
-            await page.goto(url, wait_until="networkidle", timeout=60000)
-            await page.wait_for_timeout(4000)
+            await page.goto(url_contenedor, wait_until="networkidle", timeout=60000)
+            await page.wait_for_timeout(3000)
 
-            # Buscar el frame adecuado si existe
-            target_frame = page
-            for frame in page.frames:
-                if "rally_results.php" in frame.url or "rally_id" in frame.url:
-                    target_frame = frame
-                    print(f"Frame objetivo: {frame.url}")
+            # Buscar si hay un <iframe> dentro de la página
+            iframes = page.frames
+            print(f"Total de frames/iframes detectados: {len(iframes)}")
+            
+            target_page = page
+            for frame in iframes:
+                print(f" - Evaluando frame: {frame.url}")
+                if "rally_results.php" in frame.url:
+                    target_page = frame
+                    print(f"--> ¡Iframe central de resultados encontrado! {frame.url}")
                     break
 
-            rows = await target_frame.query_selector_all("tr")
-            print(f"Filas encontradas en el DOM: {len(rows)}")
+            # Si no hay iframe explícito, intentar navegar directamente en la pestaña activa
+            if target_page == page and len(iframes) <= 1:
+                print(f"Navegando directamente al módulo de resultados: {url_directa}")
+                await page.goto(url_directa, wait_until="networkidle", timeout=30000)
+                await page.wait_for_timeout(2000)
+                target_page = page
+
+            rows = await target_page.query_selector_all("tr")
+            print(f"Filas a analizar en el módulo de resultados: {len(rows)}")
 
             posicion_real = 1
             puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
+
+            # Palabras clave a ignorar (menús y administradores)
+            palabras_descarte = [
+                'hotlap', 'home', 'download', 'championship', 'menu', 'driver', 'piloto', 
+                'coche', 'car', 'chrisx', 'falcon77', 'lacka6', 'sebgutkopf', 'discord', 
+                'facebook', 'instagram', 'admins', 'links', 'hirdetés'
+            ]
 
             for idx, row in enumerate(rows):
                 cells = await row.query_selector_all("td, th")
@@ -46,23 +66,19 @@ async def obtener_tiempos_playwright(rally_id):
                 if len(cell_texts) < 3:
                     continue
 
-                # Extraer números de la primera celda
-                primer_texto = cell_texts[0]
-                pos_limpia = re.sub(r'\D', '', primer_texto)
+                texto_completo_fila = " ".join(cell_texts).lower()
 
-                # Imprimir algunas filas en los logs para depuración
-                if idx < 15:
-                    print(f"Fila {idx} [pos_limpia='{pos_limpia}']: {cell_texts[:4]}")
+                # Descartar si contiene palabras del menú o admins
+                if any(bad in texto_completo_fila for bad in palabras_descarte):
+                    continue
 
-                # Buscar si alguna celda tiene formato de tiempo mm:ss.ms
+                # La primera celda debe tener un número de posición (ej: 1, 2, 3...)
+                pos_limpia = re.sub(r'\D', '', cell_texts[0])
+
+                # Buscar formato de tiempo en las celdas (ej: 12:34.56 o 1:23:45)
                 tiene_tiempo = any(re.search(r'\d+:\d{2}', t) for t in cell_texts)
 
-                # Si hay una posición numérica o hay un tiempo registrado
-                if pos_limpia.isdigit() or tiene_tiempo:
-                    texto_unido = " ".join(cell_texts).lower()
-                    if any(bad in texto_unido for bad in ['hotlap', 'home', 'download', 'championship', 'menu', 'driver', 'piloto', 'coche', 'car']):
-                        continue
-
+                if pos_limpia.isdigit() and tiene_tiempo:
                     piloto = cell_texts[1] if len(cell_texts) > 1 else "Piloto"
                     coche = cell_texts[2] if len(cell_texts) > 2 else "N/A"
                     tiempo = "--:--.--"
@@ -83,11 +99,11 @@ async def obtener_tiempos_playwright(rally_id):
                         "puntos_ps": 0,
                         "puntos_totales": pts_rally
                     })
-                    print(f"  [+]Piloto #{posicion_real}: {piloto} | {coche} | {tiempo}")
+                    print(f"  [+] ¡PILOTO EXTRAÍDO! #{posicion_real}: {piloto} | {coche} | {tiempo}")
                     posicion_real += 1
 
         except Exception as e:
-            print(f"Error extrayendo con Playwright: {e}")
+            print(f"Error procesando con Playwright: {e}")
         finally:
             await browser.close()
 
@@ -117,7 +133,7 @@ def main():
     with open('resultados.json', 'w', encoding='utf-8') as f:
         json.dump(datos_salida, f, ensure_ascii=False, indent=2)
 
-    print(f"Guardados {len(resultados)} pilotos en resultados.json.")
+    print(f"Procesado finalizado. Total guardados: {len(resultados)} pilotos.")
 
 if __name__ == "__main__":
     main()

@@ -1,65 +1,53 @@
 import json
 import re
-import requests
-from bs4 import BeautifulSoup
+import urllib.request
 
 def obtener_tiempos(rally_id):
     if not rally_id:
         return []
         
     url = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}"
-    headers = {'User-Agent': 'Mozilla/5.0'}
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     
     try:
-        response = requests.get(url, headers=headers)
-        response.encoding = 'utf-8'
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Buscar la tabla que contiene los tiempos (evitando menús)
-        tablas = soup.find_all('table')
-        tabla_resultados = None
-        
-        for t in tablas:
-            # La tabla correcta contiene encabezados típicos de resultados
-            texto = t.get_text().lower()
-            if 'pos' in texto or 'driver' in texto or 'car' in texto or 'stage' in texto:
-                tabla_resultados = t
-                break
-                
-        if not tabla_resultados and len(tablas) > 0:
-            tabla_resultados = tablas[-1] # Probar con la última tabla si no se detecta por texto
+        with urllib.request.urlopen(req) as response:
+            html = response.read().decode('utf-8', errors='ignore')
 
-        if not tabla_resultados:
-            return []
-
-        filas = tabla_resultados.find_all('tr')
+        # Buscar las filas de la tabla de resultados mediante expresiones regulares
+        # Filtra únicamente filas que contengan celdas TD de tablas
+        filas = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL | re.IGNORECASE)
+        
         resultados = []
         posicion = 1
-
         puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
         for fila in filas:
-            celdas = fila.find_all(['td', 'th'])
-            textos = [c.get_text().strip() for c in celdas]
+            # Extraer el texto limpio dentro de cada TD
+            celdas = re.findall(r'<td[^>]*>(.*?)</td>', fila, re.DOTALL | re.IGNORECASE)
+            textos = [re.sub(r'<[^>]+>', '', c).strip() for c in celdas]
 
-            # Omitir encabezados y filas vacías o con textos de menú
-            if not textos or len(textos) < 4 or 'Hotlap' in textos[0] or 'Download' in textos[0]:
-                continue
-                
-            # Validar que la primera celda sea una posición numérica
-            if not textos[0].isdigit():
+            # Requerimos al menos 4 columnas útiles y descartar enlaces del menú lateral
+            if len(textos) < 4 or any(w in textos[0] for w in ['Hotlap', 'Download', 'Menu', 'Profile', 'Home']):
                 continue
 
-            nombre_piloto = textos[1]
-            coche = textos[2]
-            tiempo = textos[-1] # El tiempo total suele ser la última columna
+            # Verificar que el primer dato o posición empiece por un número
+            if not re.match(r'^\d+', textos[0]):
+                continue
+
+            piloto = textos[1] if len(textos) > 1 else "Piloto"
+            coche = textos[2] if len(textos) > 2 else "N/A"
+            tiempo = textos[-1] if len(textos) > 3 else "--:--.--"
+
+            # Evitar filtrado de falsos positivos
+            if not piloto or len(piloto) < 2:
+                continue
 
             pts_rally = puntos_escala[posicion - 1] if posicion <= len(puntos_escala) else 1
-            pts_ps = 0 # Reservado para la Power Stage
+            pts_ps = 0
 
             resultados.append({
                 "posicion": posicion,
-                "nombre": nombre_piloto,
+                "nombre": piloto,
                 "coche": coche,
                 "tiempo": tiempo,
                 "puntos_rally": pts_rally,

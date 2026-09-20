@@ -1,0 +1,27 @@
+{
+  "4WD": [
+    "Toyota Yaris WRC 2018",
+    "Hyundai i20 Coupe WRC 2021",
+    "Ford Fiesta RS WRC 2014",
+    "Hyundai i20 Coupe WRC 2017",
+    "Mini JCW WRC",
+    "Citroen C3 WRC 2017",
+    "Ford Fiesta WRC 2019",
+    "Citroen DS3 WRC",
+    "VW Polo R WRC 2016"
+  ],
+  "FWD": [
+    "Ford Fiesta R2",
+    "Peugeot 208 R2",
+    "Renault Clio R3",
+    "Citroen C2 R2",
+    "Suzuki Swift S1600"
+  ],
+  "RWD": [
+    "BMW M3 E30",
+    "Ford Escort RS2000",
+    "Porsche 911 GT3",
+    "Opel Ascona 400",
+    "Lancia 037"
+  ]
+}

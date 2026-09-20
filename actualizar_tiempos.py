@@ -13,24 +13,29 @@ def obtener_tiempos(rally_id):
         with urllib.request.urlopen(req) as response:
             html = response.read().decode('utf-8', errors='ignore')
 
+        print(f"--- INICIO DIAGNÓSTICO RSF (Longitud HTML: {len(html)}) ---")
+
+        # Buscar cualquier tabla o patrón que contenga filas
         filas = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL | re.IGNORECASE)
-        
+        print(f"Total de filas <tr> encontradas: {len(filas)}")
+
         resultados = []
         posicion_real = 1
         puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
-        for fila in filas:
-            # Extraer el contenido de las celdas
-            celdas = re.findall(r'<td[^>]*>(.*?)</td>', fila, re.DOTALL | re.IGNORECASE)
+        for idx, fila in enumerate(filas):
+            celdas = re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>', fila, re.DOTALL | re.IGNORECASE)
             textos = [re.sub(r'<[^>]+>', '', c).strip() for c in celdas]
 
-            # Necesitamos al menos 3 columnas para tener Posición, Piloto y Coche
+            # Si la fila tiene al menos 2 columnas, la imprimimos en los logs para ver qué contiene
+            if len(textos) >= 2:
+                print(f"Fila {idx}: {textos[:4]}")
+
             if len(textos) < 3:
                 continue
 
             pos_limpia = textos[0].replace('.', '').strip()
 
-            # Comprobar que la primera celda es un número puro (la posición en el rally)
             if not pos_limpia.isdigit():
                 continue
 
@@ -38,7 +43,6 @@ def obtener_tiempos(rally_id):
             coche = textos[2] if len(textos) > 2 else "N/A"
             tiempo = textos[-1] if len(textos) > 3 else "--:--.--"
 
-            # Omitir filas sin nombre o nombres raros
             if not nombre_piloto or len(nombre_piloto) < 2:
                 continue
 
@@ -56,6 +60,8 @@ def obtener_tiempos(rally_id):
             })
             posicion_real += 1
 
+        print(f"Total de pilotos procesados: {len(resultados)}")
+        print("--- FIN DIAGNÓSTICO RSF ---")
         return resultados
 
     except Exception as e:
@@ -81,8 +87,6 @@ def main():
 
     with open('resultados.json', 'w', encoding='utf-8') as f:
         json.dump(datos_salida, f, ensure_ascii=False, indent=2)
-
-    print(f"Procesados {len(resultados)} pilotos correctamente.")
 
 if __name__ == "__main__":
     main()

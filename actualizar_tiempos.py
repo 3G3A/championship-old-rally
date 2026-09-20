@@ -7,54 +7,59 @@ def obtener_tiempos(rally_id):
         return []
         
     url = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}"
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
     
     try:
         with urllib.request.urlopen(req) as response:
             html = response.read().decode('utf-8', errors='ignore')
 
-        # Buscar las filas de la tabla de resultados mediante expresiones regulares
-        # Filtra únicamente filas que contengan celdas TD de tablas
+        # Extraer todas las filas <tr> de las tablas
         filas = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL | re.IGNORECASE)
         
         resultados = []
-        posicion = 1
+        posicion_real = 1
         puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
+        # Palabras clave de menús para descartar
+        palabras_basura = ['hotlap', 'download', 'menu', 'profile', 'home', 'discord', 'facebook', 'instagram', 'championships', 'stats', 'logout']
+
         for fila in filas:
-            # Extraer el texto limpio dentro de cada TD
-            celdas = re.findall(r'<td[^>]*>(.*?)</td>', fila, re.DOTALL | re.IGNORECASE)
+            # Extraer celdas <td> o <th>
+            celdas = re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>', fila, re.DOTALL | re.IGNORECASE)
             textos = [re.sub(r'<[^>]+>', '', c).strip() for c in celdas]
 
-            # Requerimos al menos 4 columnas útiles y descartar enlaces del menú lateral
-            if len(textos) < 4 or any(w in textos[0] for w in ['Hotlap', 'Download', 'Menu', 'Profile', 'Home']):
+            # Si no tiene al menos 3 celdas, se descarta
+            if len(textos) < 3:
                 continue
 
-            # Verificar que el primer dato o posición empiece por un número
-            if not re.match(r'^\d+', textos[0]):
+            # Comprobar si alguna celda contiene palabras de menú
+            texto_unido = " ".join(textos).lower()
+            if any(basura in texto_unido for basura in palabras_basura):
                 continue
 
-            piloto = textos[1] if len(textos) > 1 else "Piloto"
+            # La primera celda DEBE ser exclusivamente un número (la posición: 1, 2, 3...)
+            pos_str = textos[0].replace('.', '').strip()
+            if not pos_str.isdigit():
+                continue
+
+            # Extraer los datos reales
+            nombre_piloto = textos[1]
             coche = textos[2] if len(textos) > 2 else "N/A"
             tiempo = textos[-1] if len(textos) > 3 else "--:--.--"
 
-            # Evitar filtrado de falsos positivos
-            if not piloto or len(piloto) < 2:
-                continue
-
-            pts_rally = puntos_escala[posicion - 1] if posicion <= len(puntos_escala) else 1
+            pts_rally = puntos_escala[posicion_real - 1] if posicion_real <= len(puntos_escala) else 1
             pts_ps = 0
 
             resultados.append({
-                "posicion": posicion,
-                "nombre": piloto,
+                "posicion": posicion_real,
+                "nombre": nombre_piloto,
                 "coche": coche,
                 "tiempo": tiempo,
                 "puntos_rally": pts_rally,
                 "puntos_ps": pts_ps,
                 "puntos_totales": pts_rally + pts_ps
             })
-            posicion += 1
+            posicion_real += 1
 
         return resultados
 

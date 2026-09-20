@@ -22,26 +22,21 @@ async def obtener_tiempos_playwright(rally_id):
             await page.goto(url, wait_until="networkidle", timeout=60000)
             await page.wait_for_timeout(4000)
 
-            # Si RSF carga la tabla dentro de un iframe o frame secundario
+            # Buscar el frame adecuado si existe
             target_frame = page
             for frame in page.frames:
                 if "rally_results.php" in frame.url or "rally_id" in frame.url:
                     target_frame = frame
-                    print(f"Iframe detected: {frame.url}")
+                    print(f"Frame objetivo: {frame.url}")
                     break
 
-            # Extraer las filas directamente desde el DOM
             rows = await target_frame.query_selector_all("tr")
-            print(f"Filas de tabla encontradas en el DOM: {len(rows)}")
+            print(f"Filas encontradas en el DOM: {len(rows)}")
 
             posicion_real = 1
             puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
-            for row in rows:
-                text_content = await row.text_content()
-                if not text_content or "hotlap" in text_content.lower() or "download" in text_content.lower():
-                    continue
-
+            for idx, row in enumerate(rows):
                 cells = await row.query_selector_all("td, th")
                 cell_texts = []
                 for cell in cells:
@@ -51,10 +46,24 @@ async def obtener_tiempos_playwright(rally_id):
                 if len(cell_texts) < 3:
                     continue
 
-                pos_candidate = cell_texts[0].replace('.', '').strip()
+                # Extraer números de la primera celda
+                primer_texto = cell_texts[0]
+                pos_limpia = re.sub(r'\D', '', primer_texto)
 
-                if pos_candidate.isdigit():
-                    piloto = cell_texts[1]
+                # Imprimir algunas filas en los logs para depuración
+                if idx < 15:
+                    print(f"Fila {idx} [pos_limpia='{pos_limpia}']: {cell_texts[:4]}")
+
+                # Buscar si alguna celda tiene formato de tiempo mm:ss.ms
+                tiene_tiempo = any(re.search(r'\d+:\d{2}', t) for t in cell_texts)
+
+                # Si hay una posición numérica o hay un tiempo registrado
+                if pos_limpia.isdigit() or tiene_tiempo:
+                    texto_unido = " ".join(cell_texts).lower()
+                    if any(bad in texto_unido for bad in ['hotlap', 'home', 'download', 'championship', 'menu', 'driver', 'piloto', 'coche', 'car']):
+                        continue
+
+                    piloto = cell_texts[1] if len(cell_texts) > 1 else "Piloto"
                     coche = cell_texts[2] if len(cell_texts) > 2 else "N/A"
                     tiempo = "--:--.--"
 
@@ -74,7 +83,7 @@ async def obtener_tiempos_playwright(rally_id):
                         "puntos_ps": 0,
                         "puntos_totales": pts_rally
                     })
-                    print(f"  [+] Piloto #{posicion_real}: {piloto} | {coche} | {tiempo}")
+                    print(f"  [+]Piloto #{posicion_real}: {piloto} | {coche} | {tiempo}")
                     posicion_real += 1
 
         except Exception as e:
@@ -95,7 +104,6 @@ def main():
     rally_id = config.get('rally_actual_id', '')
     resultados = asyncio.run(obtener_tiempos_playwright(rally_id))
 
-    # Resguardo si no se capturan filas
     if not resultados and 'pilotos_manuales' in config:
         print("Usando datos de respaldo en config.json")
         resultados = config.get('pilotos_manuales', [])

@@ -1,15 +1,5 @@
 {
   "rally_actual_id": "103519",
-  "resultados_rally": [
-    {
-      "posicion": 1,
-      "nombre": "ChrisX",
-      "coche": "Falcon77",
-      "tiempo": "--:--.--",
-      "puntos_rally": 50,
-      "puntos_ps": 0,
-      "puntos_totales": 50
-    }
-  ],
+  "resultados_rally": [],
   "historico_rallies": {}
 }

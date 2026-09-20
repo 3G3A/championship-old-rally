@@ -7,9 +7,7 @@ async def obtener_tiempos_playwright(rally_id):
     if not rally_id:
         return []
 
-    # Cargar directamente el frame central de la tabla de resultados
-    url_directa = f"https://www.rallysimfans.hu/rbr/rally_results.php?rally_id={rally_id}"
-    url_contenedor = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}"
+    url = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}"
     resultados = []
 
     async with async_playwright() as p:
@@ -19,91 +17,72 @@ async def obtener_tiempos_playwright(rally_id):
         )
         page = await context.new_page()
 
-        print(f"Cargando navegador en página contenedora: {url_contenedor}")
+        print(f"Cargando RSF en navegador virtual: {url}")
         try:
-            await page.goto(url_contenedor, wait_until="networkidle", timeout=60000)
-            await page.wait_for_timeout(3000)
-
-            # Buscar si hay un <iframe> dentro de la página
-            iframes = page.frames
-            print(f"Total de frames/iframes detectados: {len(iframes)}")
+            # Ir a la URL y esperar carga de red completa
+            await page.goto(url, wait_until="networkidle", timeout=60000)
             
-            target_page = page
-            for frame in iframes:
-                print(f" - Evaluando frame: {frame.url}")
-                if "rally_results.php" in frame.url:
-                    target_page = frame
-                    print(f"--> ¡Iframe central de resultados encontrado! {frame.url}")
-                    break
+            # Esperar a que aparezca cualquier tabla en la página
+            try:
+                await page.wait_for_selector("table", timeout=10000)
+            except Exception:
+                print("Tiempo de espera para selector 'table' agotado.")
 
-            # Si no hay iframe explícito, intentar navegar directamente en la pestaña activa
-            if target_page == page and len(iframes) <= 1:
-                print(f"Navegando directamente al módulo de resultados: {url_directa}")
-                await page.goto(url_directa, wait_until="networkidle", timeout=30000)
-                await page.wait_for_timeout(2000)
-                target_page = page
+            # Esperar 5 segundos adicionales para renderizado de JS
+            await page.wait_for_timeout(5000)
 
-            rows = await target_page.query_selector_all("tr")
-            print(f"Filas a analizar en el módulo de resultados: {len(rows)}")
+            # Buscar todas las tablas presentes en el documento
+            tables = await page.query_selector_all("table")
+            print(f"Tablas totales encontradas en la página: {len(tables)}")
 
             posicion_real = 1
             puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
-            # Palabras clave a ignorar (menús y administradores)
-            palabras_descarte = [
-                'hotlap', 'home', 'download', 'championship', 'menu', 'driver', 'piloto', 
-                'coche', 'car', 'chrisx', 'falcon77', 'lacka6', 'sebgutkopf', 'discord', 
-                'facebook', 'instagram', 'admins', 'links', 'hirdetés'
-            ]
-
-            for idx, row in enumerate(rows):
-                cells = await row.query_selector_all("td, th")
-                cell_texts = []
-                for cell in cells:
-                    txt = await cell.text_content()
-                    cell_texts.append(txt.strip() if txt else "")
-
-                if len(cell_texts) < 3:
+            for t_idx, table in enumerate(tables):
+                rows = await table.query_selector_all("tr")
+                
+                # Evaluar únicamente tablas que tengan densidad de filas (posibles resultados)
+                if len(rows) < 2:
                     continue
 
-                texto_completo_fila = " ".join(cell_texts).lower()
+                for row in rows:
+                    cells = await row.query_selector_all("td, th")
+                    cell_texts = [((await c.text_content()) or "").strip() for c in cells]
 
-                # Descartar si contiene palabras del menú o admins
-                if any(bad in texto_completo_fila for bad in palabras_descarte):
-                    continue
+                    if len(cell_texts) < 3:
+                        continue
 
-                # La primera celda debe tener un número de posición (ej: 1, 2, 3...)
-                pos_limpia = re.sub(r'\D', '', cell_texts[0])
+                    # Comprobar si la fila contiene formato de tiempos (ej: 12:34.56 o 01:23:45)
+                    tiene_tiempo = any(re.search(r'\d+:\d{2}', t) for t in cell_texts)
+                    
+                    pos_limpia = re.sub(r'\D', '', cell_texts[0])
 
-                # Buscar formato de tiempo en las celdas (ej: 12:34.56 o 1:23:45)
-                tiene_tiempo = any(re.search(r'\d+:\d{2}', t) for t in cell_texts)
+                    if pos_limpia.isdigit() and tiene_tiempo:
+                        piloto = cell_texts[1] if len(cell_texts) > 1 else "Piloto"
+                        coche = cell_texts[2] if len(cell_texts) > 2 else "N/A"
+                        tiempo = "--:--.--"
 
-                if pos_limpia.isdigit() and tiene_tiempo:
-                    piloto = cell_texts[1] if len(cell_texts) > 1 else "Piloto"
-                    coche = cell_texts[2] if len(cell_texts) > 2 else "N/A"
-                    tiempo = "--:--.--"
+                        for txt in reversed(cell_texts):
+                            if re.search(r'\d+:\d{2}', txt):
+                                tiempo = txt
+                                break
 
-                    for txt in reversed(cell_texts):
-                        if re.search(r'\d+:\d{2}', txt):
-                            tiempo = txt
-                            break
+                        pts_rally = puntos_escala[posicion_real - 1] if posicion_real <= len(puntos_escala) else 1
 
-                    pts_rally = puntos_escala[posicion_real - 1] if posicion_real <= len(puntos_escala) else 1
-
-                    resultados.append({
-                        "posicion": posicion_real,
-                        "nombre": piloto,
-                        "coche": coche,
-                        "tiempo": tiempo,
-                        "puntos_rally": pts_rally,
-                        "puntos_ps": 0,
-                        "puntos_totales": pts_rally
-                    })
-                    print(f"  [+] ¡PILOTO EXTRAÍDO! #{posicion_real}: {piloto} | {coche} | {tiempo}")
-                    posicion_real += 1
+                        resultados.append({
+                            "posicion": posicion_real,
+                            "nombre": piloto,
+                            "coche": coche,
+                            "tiempo": tiempo,
+                            "puntos_rally": pts_rally,
+                            "puntos_ps": 0,
+                            "puntos_totales": pts_rally
+                        })
+                        print(f"  [+] ¡PILOTO DETECTADO! #{posicion_real}: {piloto} | {coche} | {tiempo}")
+                        posicion_real += 1
 
         except Exception as e:
-            print(f"Error procesando con Playwright: {e}")
+            print(f"Error extrayendo datos con Playwright: {e}")
         finally:
             await browser.close()
 
@@ -120,8 +99,9 @@ def main():
     rally_id = config.get('rally_actual_id', '')
     resultados = asyncio.run(obtener_tiempos_playwright(rally_id))
 
+    # Sistema de respaldo
     if not resultados and 'pilotos_manuales' in config:
-        print("Usando datos de respaldo en config.json")
+        print("Cargando datos de respaldo desde config.json")
         resultados = config.get('pilotos_manuales', [])
 
     datos_salida = {
@@ -133,7 +113,7 @@ def main():
     with open('resultados.json', 'w', encoding='utf-8') as f:
         json.dump(datos_salida, f, ensure_ascii=False, indent=2)
 
-    print(f"Procesado finalizado. Total guardados: {len(resultados)} pilotos.")
+    print(f"Proceso finalizado. Total guardados: {len(resultados)} pilotos.")
 
 if __name__ == "__main__":
     main()

@@ -277,7 +277,9 @@
             if (cfg.rallys && cfg.rallys.length > 0) {
                 cfg.rallys.forEach((r, idx) => {
                     const option = document.createElement('option');
-                    option.value = r.num || (idx + 1);
+                    // Forzamos el valor a string para asegurar compatibilidad
+                    const valNum = r.num !== undefined ? String(r.num) : String(idx + 1);
+                    option.value = valNum;
                     option.textContent = r.nombre + (r.activo ? ' (En curso)' : '');
                     if (r.activo) option.selected = true;
                     selector.appendChild(option);
@@ -296,7 +298,8 @@
                 cargarRallyDesdeCSV({ num: num, nombre: `Rally ${num}` });
                 return;
             }
-            const rallyEncontrado = configGlobal.rallys.find(r => (r.num == num));
+            // Búsqueda flexible comparando cadenas de texto (evita errores entre números y strings)
+            const rallyEncontrado = configGlobal.rallys.find(r => String(r.num) === String(num));
             if (rallyEncontrado) {
                 cargarRallyDesdeCSV(rallyEncontrado);
             } else {
@@ -308,7 +311,8 @@
             const imgPlaca = document.getElementById('imagen-placa');
             const contPlaca = document.getElementById('contenedor-placa');
 
-            if (rallyInfo.placa && rallyInfo.placa.trim() !== '') {
+            // Cargar inmediatamente la placa antes de la petición fetch
+            if (rallyInfo && rallyInfo.placa && rallyInfo.placa.trim() !== '') {
                 imgPlaca.src = rallyInfo.placa;
                 contPlaca.classList.remove('hidden');
             } else {
@@ -316,7 +320,7 @@
                 contPlaca.classList.add('hidden');
             }
 
-            document.getElementById('titulo-rally').innerHTML = `<span>🏁</span> ${rallyInfo.nombre}`;
+            document.getElementById('titulo-rally').innerHTML = `<span>🏁</span> ${rallyInfo.nombre || 'Rally'}`;
 
             const numRally = rallyInfo.num || 1;
             const tbodyRally = document.getElementById('tabla-rally-body');
@@ -411,7 +415,8 @@
 
             for (const r of configGlobal.rallys) {
                 try {
-                    const res = await fetch(`rally_${r.num}.csv`);
+                    const numR = r.num !== undefined ? r.num : 1;
+                    const res = await fetch(`rally_${numR}.csv`);
                     if (res.ok) {
                         const txt = await res.text();
                         const datos = procesarTextoCSV(txt);

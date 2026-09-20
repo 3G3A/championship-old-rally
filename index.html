@@ -10,6 +10,11 @@
             background-color: #eab308;
             color: #000;
         }
+        .active-subtab {
+            background-color: #374151;
+            color: #facc15;
+            border-color: #eab308;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8 font-sans">
@@ -28,8 +33,8 @@
             <img id="imagen-placa" src="" alt="Placa del Rally" class="max-h-48 md:max-h-64 object-contain drop-shadow-xl rounded-lg">
         </div>
 
-        <!-- Botones de Pestañas y Selector de Rally -->
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
+        <!-- Botones de Pestañas Principales y Selector de Rally -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
             <div class="flex gap-3">
                 <button id="btn-rally" onclick="cambiarPestana('rally')" 
                     class="active-tab px-6 py-2.5 rounded-lg font-bold transition-all shadow-md">
@@ -41,24 +46,37 @@
                 </button>
             </div>
 
-            <!-- Selector para consultar rallies anteriores -->
+            <!-- Selector para consultar rallies -->
             <div class="flex items-center gap-2">
                 <label for="select-rally" class="text-sm font-semibold text-gray-300">Ver Rally:</label>
                 <select id="select-rally" onchange="seleccionarRally(this.value)" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg p-2.5 focus:ring-yellow-500 focus:border-yellow-500 font-semibold">
-                    <!-- Se llena automáticamente con las 12 pruebas -->
+                    <!-- Se llena automáticamente -->
                 </select>
             </div>
         </div>
 
         <!-- TABLA: RESULTADOS DEL RALLY -->
         <div id="vista-rally" class="bg-gray-800 rounded-xl p-4 md:p-6 shadow-2xl border border-gray-700">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 id="titulo-rally" class="text-xl font-bold text-yellow-400 flex items-center gap-2">
                     <span>🏁</span> Resultados del Rally
                 </h2>
-                <span id="info-rally-id" class="text-xs bg-gray-700 text-gray-300 px-3 py-1 rounded-full font-mono">
-                    Rally ID: Loading...
-                </span>
+
+                <!-- Sub-Filtros de Categorías (GENERAL, 4WD, FWD, RWD) -->
+                <div class="flex flex-wrap gap-2">
+                    <button id="btn-cat-todas" onclick="filtrarCategoria('TODAS')" class="active-subtab border px-3 py-1 rounded-md text-xs font-bold transition-all">
+                        GENERAL
+                    </button>
+                    <button id="btn-cat-4wd" onclick="filtrarCategoria('4WD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                        4WD
+                    </button>
+                    <button id="btn-cat-fwd" onclick="filtrarCategoria('FWD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                        FWD
+                    </button>
+                    <button id="btn-cat-rwd" onclick="filtrarCategoria('RWD')" class="bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all">
+                        RWD
+                    </button>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -68,15 +86,14 @@
                             <th class="py-3 px-2 text-center">Pos</th>
                             <th class="py-3 px-4">Piloto</th>
                             <th class="py-3 px-4">Vehículo</th>
+                            <th class="py-3 px-4 text-center">Cat.</th>
                             <th class="py-3 px-4 text-right">Tiempo Total</th>
-                            <th class="py-3 px-4 text-center">Pts Rally</th>
-                            <th class="py-3 px-4 text-center">Pts PS</th>
-                            <th class="py-3 px-4 text-center text-yellow-400">Total</th>
+                            <th class="py-3 px-4 text-center text-yellow-400">Puntos</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-rally-body" class="divide-y divide-gray-700/50">
                         <tr>
-                            <td colspan="7" class="text-center py-8 text-gray-500">Cargando resultados...</td>
+                            <td colspan="6" class="text-center py-8 text-gray-500">Cargando resultados...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -113,7 +130,10 @@
 
     <script>
         let configGlobal = null;
-        let resultadosGlobales = null;
+        let mapaCochesGlobal = { "4WD": [], "FWD": [], "RWD": [] };
+        let datosRallyProcesados = [];
+        let categoriaSeleccionada = 'TODAS';
+        const puntosEscala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 1];
 
         function cambiarPestana(vista) {
             const btnRally = document.getElementById('btn-rally');
@@ -134,41 +154,49 @@
             }
         }
 
-        // Cargar todo al inicio
+        // Cargar archivo config.json y coches.json
         Promise.all([
-            fetch('config.json').then(res => res.json()),
-            fetch('resultados.json').then(res => res.json()).catch(() => null)
-        ]).then(([cfg, res]) => {
+            fetch('config.json').then(res => res.json()).catch(() => ({ rallys: [] })),
+            fetch('coches.json').then(res => res.json()).catch(() => ({ "4WD": [], "FWD": [], "RWD": [] }))
+        ]).then(([cfg, coches]) => {
             configGlobal = cfg;
-            resultadosGlobales = res;
+            mapaCochesGlobal = coches;
 
-            // Rellenar el desplegable con las 12 pruebas
             const selector = document.getElementById('select-rally');
             selector.innerHTML = '';
             
-            cfg.rallys.forEach(r => {
-                const option = document.createElement('option');
-                option.value = r.id || r.nombre;
-                option.textContent = r.nombre + (r.activo ? ' (En curso)' : '');
-                if (r.activo) option.selected = true;
-                selector.appendChild(option);
-            });
+            if (cfg.rallys && cfg.rallys.length > 0) {
+                cfg.rallys.forEach((r, idx) => {
+                    const option = document.createElement('option');
+                    option.value = r.num || (idx + 1);
+                    option.textContent = r.nombre + (r.activo ? ' (En curso)' : '');
+                    if (r.activo) option.selected = true;
+                    selector.appendChild(option);
+                });
 
-            // Mostrar el rally activo por defecto
-            const activo = cfg.rallys.find(r => r.activo) || cfg.rallys[0];
-            cargarDatosRally(activo);
+                const activo = cfg.rallys.find(r => r.activo) || cfg.rallys[0];
+                cargarRallyDesdeCSV(activo);
+            } else {
+                // Si no hay config.json, intentar cargar directamente rally_1.csv
+                cargarRallyDesdeCSV({ num: 1, nombre: 'Rally 1' });
+            }
         });
 
-        function seleccionarRally(idONombre) {
-            if (!configGlobal) return;
-            const rallyEncontrado = configGlobal.rallys.find(r => r.id === idONombre || r.nombre === idONombre);
+        function seleccionarRally(num) {
+            if (!configGlobal || !configGlobal.rallys) {
+                cargarRallyDesdeCSV({ num: num, nombre: `Rally ${num}` });
+                return;
+            }
+            const rallyEncontrado = configGlobal.rallys.find(r => (r.num == num));
             if (rallyEncontrado) {
-                cargarDatosRally(rallyEncontrado);
+                cargarRallyDesdeCSV(rallyEncontrado);
+            } else {
+                cargarRallyDesdeCSV({ num: num, nombre: `Rally ${num}` });
             }
         }
 
-        function cargarDatosRally(rallyInfo) {
-            // Actualizar placa
+        async function cargarRallyDesdeCSV(rallyInfo) {
+            // Actualizar placa y título
             const imgPlaca = document.getElementById('imagen-placa');
             if (rallyInfo.placa) {
                 imgPlaca.src = rallyInfo.placa;
@@ -177,34 +205,95 @@
                 document.getElementById('contenedor-placa').classList.add('hidden');
             }
 
-            // Actualizar título e ID
             document.getElementById('titulo-rally').innerHTML = `<span>🏁</span> ${rallyInfo.nombre}`;
-            document.getElementById('info-rally-id').textContent = rallyInfo.id ? `Rally ID: ${rallyInfo.id}` : 'Próximamente';
 
-            // Rellenar tabla
+            const numRally = rallyInfo.num || 1;
+            const tbodyRally = document.getElementById('tabla-rally-body');
+            tbodyRally.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Cargando CSV de tiempos...</td></tr>';
+
+            try {
+                const resCsv = await fetch(`rally_${numRally}.csv`);
+                if (!resCsv.ok) throw new Error("Archivo CSV no encontrado");
+
+                const textoCsv = await resCsv.text();
+                const lineas = textoCsv.split('\n').filter(l => l.trim() !== '');
+
+                datosRallyProcesados = [];
+
+                for (let i = 1; i < lineas.length; i++) {
+                    const cols = lineas[i].split(',').map(c => c.replace(/"/g, '').trim());
+                    if (cols.length < 7) continue;
+
+                    const piloto = cols[2] || cols[3]; // user_name o real_name
+                    const coche = cols[5];
+                    const tiempo = cols[6]; // time3
+
+                    if (!piloto || !tiempo || tiempo === '00:00.000') continue;
+
+                    // Determinar Categoría según coches.json
+                    let cat = '4WD';
+                    if (mapaCochesGlobal.FWD && mapaCochesGlobal.FWD.includes(coche)) cat = 'FWD';
+                    else if (mapaCochesGlobal.RWD && mapaCochesGlobal.RWD.includes(coche)) cat = 'RWD';
+                    else if (mapaCochesGlobal['4WD'] && mapaCochesGlobal['4WD'].includes(coche)) cat = '4WD';
+
+                    datosRallyProcesados.push({ piloto, coche, tiempo, categoria: cat });
+                }
+
+                filtrarCategoria(categoriaSeleccionada);
+
+            } catch (err) {
+                tbodyRally.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Este rally aún no se ha disputado o falta subir el archivo rally_' + numRally + '.csv</td></tr>';
+            }
+        }
+
+        function filtrarCategoria(cat) {
+            categoriaSeleccionada = cat;
+
+            // Actualizar estilo de botones
+            const btns = {
+                'TODAS': 'btn-cat-todas',
+                '4WD': 'btn-cat-4wd',
+                'FWD': 'btn-cat-fwd',
+                'RWD': 'btn-cat-rwd'
+            };
+
+            Object.keys(btns).forEach(key => {
+                const el = document.getElementById(btns[key]);
+                if (el) {
+                    if (key === cat) {
+                        el.className = 'active-subtab border px-3 py-1 rounded-md text-xs font-bold transition-all';
+                    } else {
+                        el.className = 'bg-gray-700 hover:bg-gray-600 border border-transparent text-gray-300 px-3 py-1 rounded-md text-xs font-bold transition-all';
+                    }
+                }
+            });
+
+            // Filtrar datos
+            let listaFiltrada = datosRallyProcesados;
+            if (cat !== 'TODAS') {
+                listaFiltrada = datosRallyProcesados.filter(p => p.categoria === cat);
+            }
+
             const tbodyRally = document.getElementById('tabla-rally-body');
             tbodyRally.innerHTML = '';
 
-            // Comprobar si existen datos para este rally en resultados.json
-            const esRallyActual = resultadosGlobales && resultadosGlobales.rally_actual_id === rallyInfo.id;
-            const datos = (resultadosGlobales && resultadosGlobales.historico_rallies && resultadosGlobales.historico_rallies[rallyInfo.id]) 
-                          || (esRallyActual ? resultadosGlobales.resultados_rally : null);
-
-            if (!datos || datos.length === 0) {
-                tbodyRally.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">Este rally aún no se ha disputado o no hay tiempos registrados.</td></tr>';
+            if (listaFiltrada.length === 0) {
+                tbodyRally.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No hay pilotos registrados en esta categoría.</td></tr>';
                 return;
             }
 
-            datos.forEach(p => {
+            listaFiltrada.forEach((p, index) => {
+                const pos = index + 1;
+                const pts = index < puntosEscala.length ? puntosEscala[index] : 1;
+
                 const row = `
-                    <tr class="hover:bg-gray-750 transition-colors">
-                        <td class="py-3 px-2 text-center font-bold ${p.posicion <= 3 ? 'text-yellow-400' : 'text-gray-300'}">${p.posicion}º</td>
-                        <td class="py-3 px-4 font-semibold text-white">${p.nombre}</td>
+                    <tr class="hover:bg-gray-750 transition-colors border-b border-gray-700/30">
+                        <td class="py-3 px-2 text-center font-bold ${pos <= 3 ? 'text-yellow-400' : 'text-gray-300'}">${pos}º</td>
+                        <td class="py-3 px-4 font-semibold text-white">${p.piloto}</td>
                         <td class="py-3 px-4 text-sm text-gray-400">${p.coche}</td>
+                        <td class="py-3 px-4 text-center text-xs"><span class="bg-gray-700 text-gray-300 px-2 py-0.5 rounded">${p.categoria}</span></td>
                         <td class="py-3 px-4 text-right font-mono text-gray-300">${p.tiempo}</td>
-                        <td class="py-3 px-4 text-center text-gray-300">${p.puntos_rally}</td>
-                        <td class="py-3 px-4 text-center text-gray-400">${p.puntos_ps}</td>
-                        <td class="py-3 px-4 text-center font-bold text-yellow-400">${p.puntos_totales}</td>
+                        <td class="py-3 px-4 text-center font-bold text-yellow-400">${pts}</td>
                     </tr>
                 `;
                 tbodyRally.innerHTML += row;

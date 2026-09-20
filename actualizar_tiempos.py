@@ -11,50 +11,56 @@ async def obtener_tiempos_playwright(rally_id):
     resultados = []
 
     async with async_playwright() as p:
-        # Lanzar navegador Chrome en modo headless
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         )
         page = await context.new_page()
 
-        print(f"Cargando página RSF con navegador virtual: {url}")
+        print(f"Cargando RSF en navegador virtual: {url}")
         try:
-            # Navegar a la página y esperar a que el DOM y las peticiones red se completen
             await page.goto(url, wait_until="networkidle", timeout=60000)
-            
-            # Esperar un par de segundos adicionales por si hay renders asíncronos
-            await page.wait_for_timeout(3000)
+            await page.wait_for_timeout(4000)
 
-            # Obtener el contenido HTML completamente renderizado
-            html = await page.content()
-            print(f"HTML renderizado capturado ({len(html)} bytes).")
+            # Si RSF carga la tabla dentro de un iframe o frame secundario
+            target_frame = page
+            for frame in page.frames:
+                if "rally_results.php" in frame.url or "rally_id" in frame.url:
+                    target_frame = frame
+                    print(f"Iframe detected: {frame.url}")
+                    break
 
-            filas = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL | re.IGNORECASE)
+            # Extraer las filas directamente desde el DOM
+            rows = await target_frame.query_selector_all("tr")
+            print(f"Filas de tabla encontradas en el DOM: {len(rows)}")
+
             posicion_real = 1
             puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
-            for fila in filas:
-                celdas = re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>', fila, re.DOTALL | re.IGNORECASE)
-                textos = [re.sub(r'<[^>]+>', '', c).strip() for c in celdas]
-
-                if len(textos) < 3:
+            for row in rows:
+                text_content = await row.text_content()
+                if not text_content or "hotlap" in text_content.lower() or "download" in text_content.lower():
                     continue
 
-                pos_str = textos[0].replace('.', '').strip()
+                cells = await row.query_selector_all("td, th")
+                cell_texts = []
+                for cell in cells:
+                    txt = await cell.text_content()
+                    cell_texts.append(txt.strip() if txt else "")
 
-                if pos_str.isdigit():
-                    texto_unido = " ".join(textos).lower()
-                    if any(bad in texto_unido for bad in ['hotlap', 'home', 'download', 'championship', 'menu', 'driver']):
-                        continue
+                if len(cell_texts) < 3:
+                    continue
 
-                    piloto = textos[1] if len(textos) > 1 else "Piloto"
-                    coche = textos[2] if len(textos) > 2 else "N/A"
+                pos_candidate = cell_texts[0].replace('.', '').strip()
+
+                if pos_candidate.isdigit():
+                    piloto = cell_texts[1]
+                    coche = cell_texts[2] if len(cell_texts) > 2 else "N/A"
                     tiempo = "--:--.--"
-                    
-                    for t in reversed(textos):
-                        if re.search(r'\d+:\d{2}', t):
-                            tiempo = t
+
+                    for txt in reversed(cell_texts):
+                        if re.search(r'\d+:\d{2}', txt):
+                            tiempo = txt
                             break
 
                     pts_rally = puntos_escala[posicion_real - 1] if posicion_real <= len(puntos_escala) else 1
@@ -68,11 +74,11 @@ async def obtener_tiempos_playwright(rally_id):
                         "puntos_ps": 0,
                         "puntos_totales": pts_rally
                     })
-                    print(f"  [+] Piloto detectado #{posicion_real}: {piloto} | {coche} | {tiempo}")
+                    print(f"  [+] Piloto #{posicion_real}: {piloto} | {coche} | {tiempo}")
                     posicion_real += 1
 
         except Exception as e:
-            print(f"Error durante la navegación con Playwright: {e}")
+            print(f"Error extrayendo con Playwright: {e}")
         finally:
             await browser.close()
 
@@ -87,9 +93,12 @@ def main():
         return
 
     rally_id = config.get('rally_actual_id', '')
-    
-    # Ejecutar la extracción asíncrona
     resultados = asyncio.run(obtener_tiempos_playwright(rally_id))
+
+    # Resguardo si no se capturan filas
+    if not resultados and 'pilotos_manuales' in config:
+        print("Usando datos de respaldo en config.json")
+        resultados = config.get('pilotos_manuales', [])
 
     datos_salida = {
         "rally_actual_id": rally_id,
@@ -100,7 +109,7 @@ def main():
     with open('resultados.json', 'w', encoding='utf-8') as f:
         json.dump(datos_salida, f, ensure_ascii=False, indent=2)
 
-    print(f"Procesados {len(resultados)} pilotos exitosamente.")
+    print(f"Guardados {len(resultados)} pilotos en resultados.json.")
 
 if __name__ == "__main__":
     main()

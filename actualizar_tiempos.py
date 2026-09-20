@@ -13,39 +13,34 @@ def obtener_tiempos(rally_id):
         with urllib.request.urlopen(req) as response:
             html = response.read().decode('utf-8', errors='ignore')
 
-        # Extraer todas las filas <tr> de las tablas
         filas = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL | re.IGNORECASE)
         
         resultados = []
         posicion_real = 1
         puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
-        # Palabras clave de menús para descartar
-        palabras_basura = ['hotlap', 'download', 'menu', 'profile', 'home', 'discord', 'facebook', 'instagram', 'championships', 'stats', 'logout']
-
         for fila in filas:
-            # Extraer celdas <td> o <th>
-            celdas = re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>', fila, re.DOTALL | re.IGNORECASE)
+            # Extraer el contenido de las celdas
+            celdas = re.findall(r'<td[^>]*>(.*?)</td>', fila, re.DOTALL | re.IGNORECASE)
             textos = [re.sub(r'<[^>]+>', '', c).strip() for c in celdas]
 
-            # Si no tiene al menos 3 celdas, se descarta
+            # Necesitamos al menos 3 columnas para tener Posición, Piloto y Coche
             if len(textos) < 3:
                 continue
 
-            # Comprobar si alguna celda contiene palabras de menú
-            texto_unido = " ".join(textos).lower()
-            if any(basura in texto_unido for basura in palabras_basura):
+            pos_limpia = textos[0].replace('.', '').strip()
+
+            # Comprobar que la primera celda es un número puro (la posición en el rally)
+            if not pos_limpia.isdigit():
                 continue
 
-            # La primera celda DEBE ser exclusivamente un número (la posición: 1, 2, 3...)
-            pos_str = textos[0].replace('.', '').strip()
-            if not pos_str.isdigit():
-                continue
-
-            # Extraer los datos reales
             nombre_piloto = textos[1]
             coche = textos[2] if len(textos) > 2 else "N/A"
             tiempo = textos[-1] if len(textos) > 3 else "--:--.--"
+
+            # Omitir filas sin nombre o nombres raros
+            if not nombre_piloto or len(nombre_piloto) < 2:
+                continue
 
             pts_rally = puntos_escala[posicion_real - 1] if posicion_real <= len(puntos_escala) else 1
             pts_ps = 0

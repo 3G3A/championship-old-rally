@@ -1,24 +1,26 @@
 import json
 import re
 import urllib.request
+import urllib.parse
+from http.cookiejar import CookieJar
 
 def obtener_tiempos_rsf(rally_id):
     if not rally_id:
         return []
 
-    # Probar endpoint interno de iframe/resultados que usa RSF
-    url = f"https://www.rallysimfans.hu/rbr/rally_results.php?rally_id={rally_id}&stage=0"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': f'https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}'
-    }
+    url = f"https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id={rally_id}"
+    
+    cj = CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener.addheaders = [
+        ('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
+        ('Accept-Language', 'es-ES,es;q=0.9,en;q=0.8')
+    ]
 
     try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req) as response:
+        # Petición con gestión de sesión
+        with opener.open(url) as response:
             html = response.read().decode('utf-8', errors='ignore')
-
-        print(f"--- PRUEBA IFRAME RSF (Longitud: {len(html)}) ---")
 
         filas = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL | re.IGNORECASE)
         resultados = []
@@ -35,6 +37,10 @@ def obtener_tiempos_rsf(rally_id):
             pos_str = textos[0].replace('.', '').strip()
 
             if pos_str.isdigit():
+                texto_unido = " ".join(textos).lower()
+                if any(bad in texto_unido for bad in ['hotlap', 'home', 'download', 'championship', 'menu', 'driver']):
+                    continue
+
                 piloto = textos[1] if len(textos) > 1 else "Piloto"
                 coche = textos[2] if len(textos) > 2 else "N/A"
                 tiempo = textos[-1] if len(textos) > 3 else "--:--.--"
@@ -52,11 +58,10 @@ def obtener_tiempos_rsf(rally_id):
                 })
                 posicion_real += 1
 
-        print(f"Pilotos procesados desde iframe: {len(resultados)}")
         return resultados
 
     except Exception as e:
-        print(f"Error consultando iframe RSF: {e}")
+        print(f"Error procesando RSF: {e}")
         return []
 
 def main():
@@ -69,12 +74,12 @@ def main():
 
     rally_id = config.get('rally_actual_id', '')
     
-    # 1. Intentar obtener tiempos desde RSF
+    # 1. Obtener datos desde RSF
     resultados = obtener_tiempos_rsf(rally_id)
 
-    # 2. Si RSF bloquea la extracción automática, usar datos manuales/locales declarados en config.json si existen
+    # 2. Si no se extraen automáticamente, cargar desde config.json si hay datos manuales definidos
     if not resultados and 'pilotos_manuales' in config:
-        print("Usando datos de copia de respaldo desde config.json")
+        print("Cargando datos desde respaldo en config.json")
         resultados = config.get('pilotos_manuales', [])
 
     datos_salida = {
@@ -86,7 +91,7 @@ def main():
     with open('resultados.json', 'w', encoding='utf-8') as f:
         json.dump(datos_salida, f, ensure_ascii=False, indent=2)
 
-    print(f"Resultado final guardado en resultados.json: {len(resultados)} pilotos")
+    print(f"Procesados {len(resultados)} pilotos.")
 
 if __name__ == "__main__":
     main()

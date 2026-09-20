@@ -19,53 +19,45 @@ async def obtener_tiempos_playwright(rally_id):
 
         print(f"Cargando RSF en navegador virtual: {url}")
         try:
-            # Ir a la URL y esperar carga de red completa
             await page.goto(url, wait_until="networkidle", timeout=60000)
-            
-            # Esperar a que aparezca cualquier tabla en la página
-            try:
-                await page.wait_for_selector("table", timeout=10000)
-            except Exception:
-                print("Tiempo de espera para selector 'table' agotado.")
-
-            # Esperar 5 segundos adicionales para renderizado de JS
             await page.wait_for_timeout(5000)
 
-            # Buscar todas las tablas presentes en el documento
             tables = await page.query_selector_all("table")
-            print(f"Tablas totales encontradas en la página: {len(tables)}")
+            print(f"Tablas totales encontradas: {len(tables)}")
 
             posicion_real = 1
             puntos_escala = [50, 45, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12, 10, 8, 6, 4, 2, 1]
 
             for t_idx, table in enumerate(tables):
                 rows = await table.query_selector_all("tr")
-                
-                # Evaluar únicamente tablas que tengan densidad de filas (posibles resultados)
                 if len(rows) < 2:
                     continue
 
-                for row in rows:
+                for r_idx, row in enumerate(rows):
                     cells = await row.query_selector_all("td, th")
                     cell_texts = [((await c.text_content()) or "").strip() for c in cells]
 
-                    if len(cell_texts) < 3:
+                    if len(cell_texts) < 2:
                         continue
 
-                    # Comprobar si la fila contiene formato de tiempos (ej: 12:34.56 o 01:23:45)
-                    tiene_tiempo = any(re.search(r'\d+:\d{2}', t) for t in cell_texts)
+                    # Imprimir en consola las filas que parezcan tener datos de rally
+                    texto_fila = " | ".join(cell_texts)
                     
-                    pos_limpia = re.sub(r'\D', '', cell_texts[0])
+                    # Filtrar menús obvios
+                    if any(m in texto_fila.lower() for m in ['home', 'hotlap', 'download', 'championships', 'discord', 'facebook']):
+                        continue
 
-                    if pos_limpia.isdigit() and tiene_tiempo:
-                        piloto = cell_texts[1] if len(cell_texts) > 1 else "Piloto"
+                    print(f"Tabla {t_idx} - Fila {r_idx}: {cell_texts}")
+
+                    # Si la fila tiene al menos 3 celdas y no es un encabezado
+                    if len(cell_texts) >= 3:
+                        # Si no es la fila de títulos (Pos, Driver, Car...)
+                        if "driver" in cell_texts[1].lower() or "piloto" in cell_texts[1].lower() or "pos" in cell_texts[0].lower():
+                            continue
+
+                        piloto = cell_texts[1]
                         coche = cell_texts[2] if len(cell_texts) > 2 else "N/A"
-                        tiempo = "--:--.--"
-
-                        for txt in reversed(cell_texts):
-                            if re.search(r'\d+:\d{2}', txt):
-                                tiempo = txt
-                                break
+                        tiempo = cell_texts[-1] if len(cell_texts) > 3 else "--:--.--"
 
                         pts_rally = puntos_escala[posicion_real - 1] if posicion_real <= len(puntos_escala) else 1
 
@@ -78,11 +70,11 @@ async def obtener_tiempos_playwright(rally_id):
                             "puntos_ps": 0,
                             "puntos_totales": pts_rally
                         })
-                        print(f"  [+] ¡PILOTO DETECTADO! #{posicion_real}: {piloto} | {coche} | {tiempo}")
+                        print(f"   --> PILOTO CAPTURADO #{posicion_real}: {piloto} | {coche} | {tiempo}")
                         posicion_real += 1
 
         except Exception as e:
-            print(f"Error extrayendo datos con Playwright: {e}")
+            print(f"Error extrayendo datos: {e}")
         finally:
             await browser.close()
 
@@ -99,9 +91,8 @@ def main():
     rally_id = config.get('rally_actual_id', '')
     resultados = asyncio.run(obtener_tiempos_playwright(rally_id))
 
-    # Sistema de respaldo
     if not resultados and 'pilotos_manuales' in config:
-        print("Cargando datos de respaldo desde config.json")
+        print("Cargando datos de respaldo en config.json")
         resultados = config.get('pilotos_manuales', [])
 
     datos_salida = {
@@ -113,7 +104,7 @@ def main():
     with open('resultados.json', 'w', encoding='utf-8') as f:
         json.dump(datos_salida, f, ensure_ascii=False, indent=2)
 
-    print(f"Proceso finalizado. Total guardados: {len(resultados)} pilotos.")
+    print(f"Total guardados en resultados.json: {len(resultados)} pilotos.")
 
 if __name__ == "__main__":
     main()

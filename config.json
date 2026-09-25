@@ -1,17 +1,17 @@
 {
   "rally_actual_id": "103519",
   "rallys": [
-    { "num": 1, "id": "103519", "nombre": "OCTUBRE 5 A 11 - Repsol Rally", "placa": "REPSOL RALLY.png", "activo": true },
-    { "num": 2, "id": "", "nombre": "OCTUBRE 12 A 18 - Martini International Rally", "placa": "MARTINI INTERNATIONAL RALLY.png", "activo": false },
-    { "num": 3, "id": "", "nombre": "OCTUBRE 19 A 25 - Pirelli Tarmac Trophy", "placa": "PIRELLI TARMAC TROPHY.png", "activo": false },
-    { "num": 4, "id": "", "nombre": "OCTUBRE 26 A 1 NOV - Michelin Asfalt Challenge", "placa": "MICHELIN ASFALT CHALLENGE.png", "activo": false },
-    { "num": 5, "id": "", "nombre": "NOVIEMBRE 2 A 8 - Mobil 1 Forest Rally", "placa": "MOBIL 1 FOREST RALLY.png", "activo": false },
-    { "num": 6, "id": "", "nombre": "NOVIEMBRE 9 A 15 - Camel Rough Gravel Rally", "placa": "CAMEL ROUGH GRAVEL RALLY.png", "activo": false },
-    { "num": 7, "id": "", "nombre": "NOVIEMBRE 16 A 22 - Castrol Mud & Fog Rally", "placa": "CASTROL MUD & FOG RALLY.png", "activo": false },
-    { "num": 8, "id": "", "nombre": "NOVIEMBRE 23 A 29 - HB International Snow Rally", "placa": "HB INTERNATIONAL SNOW RALLY.png", "activo": false },
-    { "num": 9, "id": "", "nombre": "DICIEMBRE 30 NOV A 6 DIC - Total Energies Night Rally", "placa": "TOTAL ENERGIES NIGHT RALLY.png", "activo": false },
-    { "num": 10, "id": "", "nombre": "DICIEMBRE 7 A 13 - Rally Sparco", "placa": "RALLY SPARCO.png", "activo": false },
-    { "num": 11, "id": "", "nombre": "DICIEMBRE 14 A 20 - Rally Casino", "placa": "RALLY CASINO.png", "activo": false },
-    { "num": 12, "id": "", "nombre": "DICIEMBRE 21 A 27 - Safety Culture Gravel Rally", "placa": "SAFETY CULTURE GRAVEL RALLY.png", "activo": false }
+    { "num": 1, "id": "103519", "nombre": "OCTUBRE 5 A 11 - Repsol Rally", "placa": "REPSOL RALLY.png", "link": "https://www.rallysimfans.hu/rbr/rally_online.php?centerbox=rally_list_details.php&rally_id=103519", "activo": true },
+    { "num": 2, "id": "", "nombre": "OCTUBRE 12 A 18 - Martini International Rally", "placa": "MARTINI INTERNATIONAL RALLY.png", "link": "", "activo": false },
+    { "num": 3, "id": "", "nombre": "OCTUBRE 19 A 25 - Pirelli Tarmac Trophy", "placa": "PIRELLI TARMAC TROPHY.png", "link": "", "activo": false },
+    { "num": 4, "id": "", "nombre": "OCTUBRE 26 A 1 NOV - Michelin Asfalt Challenge", "placa": "MICHELIN ASFALT CHALLENGE.png", "link": "", "activo": false },
+    { "num": 5, "id": "", "nombre": "NOVIEMBRE 2 A 8 - Mobil 1 Forest Rally", "placa": "MOBIL 1 FOREST RALLY.png", "link": "", "activo": false },
+    { "num": 6, "id": "", "nombre": "NOVIEMBRE 9 A 15 - Camel Rough Gravel Rally", "placa": "CAMEL ROUGH GRAVEL RALLY.png", "link": "", "activo": false },
+    { "num": 7, "id": "", "nombre": "NOVIEMBRE 16 A 22 - Castrol Mud & Fog Rally", "placa": "CASTROL MUD & FOG RALLY.png", "link": "", "activo": false },
+    { "num": 8, "id": "", "nombre": "NOVIEMBRE 23 A 29 - HB International Snow Rally", "placa": "HB INTERNATIONAL SNOW RALLY.png", "link": "", "activo": false },
+    { "num": 9, "id": "", "nombre": "DICIEMBRE 30 NOV A 6 DIC - Total Energies Night Rally", "placa": "TOTAL ENERGIES NIGHT RALLY.png", "link": "", "activo": false },
+    { "num": 10, "id": "", "nombre": "DICIEMBRE 7 A 13 - Rally Sparco", "placa": "RALLY SPARCO.png", "link": "", "activo": false },
+    { "num": 11, "id": "", "nombre": "DICIEMBRE 14 A 20 - Rally Casino", "placa": "RALLY CASINO.png", "link": "", "activo": false },
+    { "num": 12, "id": "", "nombre": "DICIEMBRE 21 A 27 - Safety Culture Gravel Rally", "placa": "SAFETY CULTURE GRAVEL RALLY.png", "link": "", "activo": false }
   ]
 }

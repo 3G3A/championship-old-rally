@@ -2,16 +2,16 @@
   "rally_actual_id": "103519",
   "rallys": [
     { "num": 1, "id": "103519", "nombre": "OCTUBRE - Repsol Rally", "placa": "REPSOL RALLY.png", "activo": true },
-    { "num": 2, "id": "", "nombre": "NOVIEMBRE - Martini International Rally", "placa": "MARTINI INTERNATIONAL RALLY.png", "activo": false },
-    { "num": 3, "id": "", "nombre": "DICIEMBRE - Pirelli Tarmac Trophy", "placa": "PIRELLI TARMAC TROPHY.png", "activo": false },
-    { "num": 4, "id": "", "nombre": "ENERO - Michelin Asfalt Challenge", "placa": "MICHELIN ASFALT CHALLENGE.png", "activo": false },
-    { "num": 5, "id": "", "nombre": "FEBRERO - Mobil 1 Forest Rally", "placa": "MOBIL 1 FOREST RALLY.png", "activo": false },
-    { "num": 6, "id": "", "nombre": "MARZO - Camel Rough Gravel Rally", "placa": "CAMEL ROUGH GRAVEL RALLY.png", "activo": false },
-    { "num": 7, "id": "", "nombre": "ABRIL - Castrol Mud & Fog Rally", "placa": "CASTROL MUD & FOG RALLY.png", "activo": false },
-    { "num": 8, "id": "", "nombre": "MAYO - HB International Snow Rally", "placa": "HB INTERNATIONAL SNOW RALLY.png", "activo": false },
-    { "num": 9, "id": "", "nombre": "JUNIO - Total Energies Night Rally", "placa": "TOTAL ENERGIES NIGHT RALLY.png", "activo": false },
-    { "num": 10, "id": "", "nombre": "JULIO - Rally Sparco", "placa": "RALLY SPARCO.png", "activo": false },
-    { "num": 11, "id": "", "nombre": "AGOSTO - Rally Casino", "placa": "RALLY CASINO.png", "activo": false },
-    { "num": 12, "id": "", "nombre": "SEPTIEMBRE - Safety Culture Gravel Rally", "placa": "SAFETY CULTURE GRAVEL RALLY.png", "activo": false }
+    { "num": 2, "id": "", "nombre": "OCTUBRE - Martini International Rally", "placa": "MARTINI INTERNATIONAL RALLY.png", "activo": false },
+    { "num": 3, "id": "", "nombre": "OCTUBRE - Pirelli Tarmac Trophy", "placa": "PIRELLI TARMAC TROPHY.png", "activo": false },
+    { "num": 4, "id": "", "nombre": "OCTUBRE - Michelin Asfalt Challenge", "placa": "MICHELIN ASFALT CHALLENGE.png", "activo": false },
+    { "num": 5, "id": "", "nombre": "NOVIEMBRE - Mobil 1 Forest Rally", "placa": "MOBIL 1 FOREST RALLY.png", "activo": false },
+    { "num": 6, "id": "", "nombre": "NOVIEMBRE - Camel Rough Gravel Rally", "placa": "CAMEL ROUGH GRAVEL RALLY.png", "activo": false },
+    { "num": 7, "id": "", "nombre": "NOVIEMBRE - Castrol Mud & Fog Rally", "placa": "CASTROL MUD & FOG RALLY.png", "activo": false },
+    { "num": 8, "id": "", "nombre": "NOVIEMBRE - HB International Snow Rally", "placa": "HB INTERNATIONAL SNOW RALLY.png", "activo": false },
+    { "num": 9, "id": "", "nombre": "DICIEMBRE - Total Energies Night Rally", "placa": "TOTAL ENERGIES NIGHT RALLY.png", "activo": false },
+    { "num": 10, "id": "", "nombre": "DICIEMBRE - Rally Sparco", "placa": "RALLY SPARCO.png", "activo": false },
+    { "num": 11, "id": "", "nombre": "DICIEMBRE - Rally Casino", "placa": "RALLY CASINO.png", "activo": false },
+    { "num": 12, "id": "", "nombre": "DICIEMBRE - Safety Culture Gravel Rally", "placa": "SAFETY CULTURE GRAVEL RALLY.png", "activo": false }
   ]
 }

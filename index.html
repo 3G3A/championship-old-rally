@@ -17,9 +17,9 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8 font-sans">
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8 font-sans flex flex-col justify-between">
 
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-5xl mx-auto w-full">
         <!-- Cabecera -->
         <header class="text-center mb-6 border-b border-gray-800 pb-6">
             <h1 class="text-3xl md:text-5xl font-extrabold text-yellow-500 uppercase tracking-wider mb-2">
@@ -28,9 +28,14 @@
             <p class="text-gray-400 text-sm md:text-base">Tiempos y clasificaciones oficiales RBR RSF</p>
         </header>
 
-        <!-- Imagen de la Placa del Rally -->
-        <div id="contenedor-placa" class="flex justify-center mb-6 hidden">
-            <img id="imagen-placa" src="" alt="Placa del Rally" class="max-h-48 md:max-h-64 object-contain drop-shadow-xl rounded-lg">
+        <!-- Imagen de la Placa del Rally y Botón de Enlace -->
+        <div id="contenedor-placa" class="flex flex-col items-center mb-6 hidden">
+            <img id="imagen-placa" src="" alt="Placa del Rally" class="max-h-48 md:max-h-64 object-contain drop-shadow-xl rounded-lg mb-4">
+            
+            <!-- Botón de acceso directo al Rally -->
+            <a id="btn-link-rally" href="#" target="_blank" class="hidden inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-gray-950 font-extrabold px-6 py-2.5 rounded-full transition-all shadow-lg hover:scale-105 uppercase text-xs md:text-sm tracking-wide">
+                <span>🚀</span> ROADBOOK
+            </a>
         </div>
 
         <!-- Botones de Pestañas Principales y Selector de Rally -->
@@ -157,7 +162,7 @@
                 <ul class="space-y-2 text-sm md:text-base">
                     <li>• <strong class="text-white">Participación:</strong> Libre y gratuita para todos los pilotos.</li>
                     <li>• <strong class="text-white">Categorías:</strong> 3 divisiones a libre elección (<strong class="text-yellow-400">4WD, FWD, RWD</strong>).</li>
-                    <li>• <strong class="text-white">Calendario:</strong> 12 Rallies en total, a razón de <strong class="text-white">1 prueba por mes</strong>.</li>
+                    <li>• <strong class="text-white">Calendario:</strong> 12 Rallies en total (<strong class="text-white">pruebas semanales de 7 días</strong>).</li>
                     <li>• <strong class="text-white">Clasificaciones:</strong>
                         <ul class="pl-6 mt-1 space-y-1 text-sm text-gray-400">
                             <li>- Clasificación <strong>GENERAL</strong> (absoluta).</li>
@@ -177,7 +182,7 @@
                 </div>
 
                 <p class="mt-4 text-xs md:text-sm text-yellow-400/90 italic">
-                    📌 <strong>Acceso a las pruebas:</strong> El enlace directo a cada rally se publicará en este apartado una vez creada la prueba en RSF.
+                    📌 <strong>Acceso a las pruebas:</strong> Utiliza el botón amarillo <em>"UNIRSE AL RALLY EN RSF"</em> que aparece bajo la placa para entrar directamente a la prueba activa.
                 </p>
             </div>
 
@@ -192,7 +197,7 @@
                 <ul class="space-y-2 text-sm md:text-base">
                     <li>• <strong class="text-white">Participation:</strong> Free and open to all drivers.</li>
                     <li>• <strong class="text-white">Categories:</strong> 3 divisions available to choose from (<strong class="text-yellow-400">4WD, FWD, RWD</strong>).</li>
-                    <li>• <strong class="text-white">Calendar:</strong> 12 Rallies in total (<strong class="text-white">1 event per month</strong>).</li>
+                    <li>• <strong class="text-white">Calendar:</strong> 12 Rallies in total (<strong class="text-white">7-day weekly events</strong>).</li>
                     <li>• <strong class="text-white">Standings:</strong>
                         <ul class="pl-6 mt-1 space-y-1 text-sm text-gray-400">
                             <li>- <strong>OVERALL</strong> Championship Standings.</li>
@@ -212,11 +217,21 @@
                 </div>
 
                 <p class="mt-4 text-xs md:text-sm text-yellow-400/90 italic">
-                    📌 <strong>Event Access:</strong> Direct links to each rally will be posted here as soon as the event is created.
+                    📌 <strong>Event Access:</strong> Use the yellow button <em>"UNIRSE AL RALLY EN RSF"</em> under the rally plate to enter the active round directly.
                 </p>
             </div>
         </div>
     </div>
+
+    <!-- PIE DE PÁGINA CON CONTADOR DE VISITAS -->
+    <footer class="mt-12 text-center text-xs text-gray-500 border-t border-gray-800/60 pt-6">
+        <p class="mb-2">Championship Old Rally &copy; 2026 - RBR RSF</p>
+        <div class="inline-flex items-center gap-2 bg-gray-800/80 px-3 py-1 rounded-full border border-gray-700/60 text-gray-400">
+            <span>👁️ Visitas:</span>
+            <!-- Contador automático via hits.seeyoufarm.com -->
+            <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fchampionship-old-rally&count_bg=%23EAB308&title_bg=%231F2937&icon=&icon_color=%23E7E7E7&title=Total&edge_flat=false" alt="Contador de visitas" class="h-4">
+        </div>
+    </footer>
 
     <script>
         let configGlobal = null;
@@ -277,8 +292,7 @@
             if (cfg.rallys && cfg.rallys.length > 0) {
                 cfg.rallys.forEach((r, idx) => {
                     const option = document.createElement('option');
-                    // Forzamos el valor a string para asegurar compatibilidad
-                    const valNum = r.num !== undefined ? String(r.num) : String(idx + 1);
+                    const valNum = String(r.num !== undefined ? r.num : (idx + 1));
                     option.value = valNum;
                     option.textContent = r.nombre + (r.activo ? ' (En curso)' : '');
                     if (r.activo) option.selected = true;
@@ -286,32 +300,39 @@
                 });
 
                 const activo = cfg.rallys.find(r => r.activo) || cfg.rallys[0];
-                cargarRallyDesdeCSV(activo);
+                const numActivo = activo.num !== undefined ? activo.num : (cfg.rallys.indexOf(activo) + 1);
+                cargarRallyDesdeCSV(activo, numActivo);
                 cargarTodosLosRalliesParaGeneral();
             } else {
-                cargarRallyDesdeCSV({ num: 1, nombre: 'Rally 1' });
+                cargarRallyDesdeCSV({ nombre: 'Rally 1' }, 1);
             }
         });
 
-        function seleccionarRally(num) {
+        function seleccionarRally(valNum) {
+            const numInt = parseInt(valNum, 10);
             if (!configGlobal || !configGlobal.rallys) {
-                cargarRallyDesdeCSV({ num: num, nombre: `Rally ${num}` });
+                cargarRallyDesdeCSV({ nombre: `Rally ${numInt}` }, numInt);
                 return;
             }
-            // Búsqueda flexible comparando cadenas de texto (evita errores entre números y strings)
-            const rallyEncontrado = configGlobal.rallys.find(r => String(r.num) === String(num));
+
+            let rallyEncontrado = configGlobal.rallys.find(r => String(r.num) === String(valNum));
+            if (!rallyEncontrado && configGlobal.rallys[numInt - 1]) {
+                rallyEncontrado = configGlobal.rallys[numInt - 1];
+            }
+
             if (rallyEncontrado) {
-                cargarRallyDesdeCSV(rallyEncontrado);
+                cargarRallyDesdeCSV(rallyEncontrado, numInt);
             } else {
-                cargarRallyDesdeCSV({ num: num, nombre: `Rally ${num}` });
+                cargarRallyDesdeCSV({ nombre: `Rally ${numInt}` }, numInt);
             }
         }
 
-        async function cargarRallyDesdeCSV(rallyInfo) {
+        async function cargarRallyDesdeCSV(rallyInfo, numOrden) {
             const imgPlaca = document.getElementById('imagen-placa');
             const contPlaca = document.getElementById('contenedor-placa');
+            const btnLink = document.getElementById('btn-link-rally');
 
-            // Cargar inmediatamente la placa antes de la petición fetch
+            // Actualización de la placa
             if (rallyInfo && rallyInfo.placa && rallyInfo.placa.trim() !== '') {
                 imgPlaca.src = rallyInfo.placa;
                 contPlaca.classList.remove('hidden');
@@ -320,14 +341,22 @@
                 contPlaca.classList.add('hidden');
             }
 
-            document.getElementById('titulo-rally').innerHTML = `<span>🏁</span> ${rallyInfo.nombre || 'Rally'}`;
+            // Actualización del botón de enlace al Rally
+            if (rallyInfo && rallyInfo.link && rallyInfo.link.trim() !== '') {
+                btnLink.href = rallyInfo.link;
+                btnLink.classList.remove('hidden');
+            } else {
+                btnLink.href = '#';
+                btnLink.classList.add('hidden');
+            }
 
-            const numRally = rallyInfo.num || 1;
+            document.getElementById('titulo-rally').innerHTML = `<span>🏁</span> ${rallyInfo.nombre || ('Rally ' + numOrden)}`;
+
             const tbodyRally = document.getElementById('tabla-rally-body');
             tbodyRally.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Cargando CSV de tiempos...</td></tr>';
 
             try {
-                const resCsv = await fetch(`rally_${numRally}.csv`);
+                const resCsv = await fetch(`rally_${numOrden}.csv`);
                 if (!resCsv.ok) throw new Error("Archivo CSV no encontrado");
 
                 const textoCsv = await resCsv.text();
@@ -337,7 +366,7 @@
 
             } catch (err) {
                 datosRallyProcesados = [];
-                tbodyRally.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Este rally aún no se ha disputado o falta subir el archivo rally_' + numRally + '.csv</td></tr>';
+                tbodyRally.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Este rally aún no se ha disputado o falta subir el archivo rally_' + numOrden + '.csv</td></tr>';
             }
         }
 
@@ -413,9 +442,9 @@
             historicoRallies = [];
             if (!configGlobal || !configGlobal.rallys) return;
 
-            for (const r of configGlobal.rallys) {
+            for (let idx = 0; idx < configGlobal.rallys.length; idx++) {
+                const numR = idx + 1;
                 try {
-                    const numR = r.num !== undefined ? r.num : 1;
                     const res = await fetch(`rally_${numR}.csv`);
                     if (res.ok) {
                         const txt = await res.text();

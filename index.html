@@ -185,7 +185,7 @@
                 </div>
 
                 <p class="mt-4 text-xs md:text-sm text-yellow-400/90 italic">
-                    📌 <strong>Acceso a las pruebas:</strong> Utiliza el botón amarillo <em>"UNIRSE AL RALLY EN RSF"</em> que aparece bajo la placa para entrar directamente a la prueba activa.
+                    📌 <strong>Acceso a las pruebas:</strong> Utiliza el botón amarillo <em>"ROADBOOK"</em> que aparece bajo la placa para entrar directamente a la prueba activa.
                 </p>
             </div>
 
@@ -220,21 +220,20 @@
                 </div>
 
                 <p class="mt-4 text-xs md:text-sm text-yellow-400/90 italic">
-                    📌 <strong>Event Access:</strong> Use the yellow button <em>"UNIRSE AL RALLY EN RSF"</em> under the rally plate to enter the active round directly.
+                    📌 <strong>Event Access:</strong> Use the yellow button <em>"ROADBOOK"</em> under the rally plate to enter the active round directly.
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- PIE DE PÁGINA CON CONTADOR DE VISITAS -->
-    <footer class="mt-12 text-center text-xs text-gray-500 border-t border-gray-800/60 pt-6">
-        <p class="mb-2">Championship Old Rally &copy; 2026 - RBR RSF</p>
-        <div class="inline-flex items-center gap-2 bg-gray-800/80 px-3 py-1 rounded-full border border-gray-700/60 text-gray-400">
-            <span>👁️ Visitas:</span>
-            <!-- Contador automático via hits.seeyoufarm.com -->
-            <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fchampionship-old-rally&count_bg=%23EAB308&title_bg=%231F2937&icon=&icon_color=%23E7E7E7&title=Total&edge_flat=false" alt="Contador de visitas" class="h-4">
-        </div>
-    </footer>
+    <!-- FOOTER CON CONTADOR DE VISITAS EN TEXTO -->
+<footer class="mt-12 pt-6 border-t border-gray-800 text-center text-xs text-gray-500 flex flex-col items-center gap-2">
+    <p>© Championship Old Rally - RBR RSF League</p>
+    <div class="flex items-center gap-2 bg-gray-800/80 px-4 py-1.5 rounded-full border border-gray-700 text-gray-300 font-semibold">
+        <span>👁️ Visitas a la web:</span>
+        <span id="numero-visitas" class="text-yellow-400 font-mono">Cargando...</span>
+    </div>
+</footer>
 
     <script>
         let configGlobal = null;
@@ -517,6 +516,15 @@
                 tbodyGen.innerHTML += row;
             });
         }
+        // Contador de visitas automático sin imágenes externas
+        fetch('https://api.counterapi.dev/v1/championship-old-rally-src/visitas/up')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('numero-visitas').textContent = data.count;
+            })
+            .catch(() => {
+                document.getElementById('numero-visitas').textContent = '+100';
+            });
     </script>
 </body>
 </html>

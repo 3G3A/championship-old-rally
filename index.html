@@ -376,10 +376,12 @@
             const lineas = textoCsv.split('\n').filter(l => l.trim() !== '');
             const lista = [];
 
+            // Empezamos en i = 1 para saltarnos la fila de nombres de columna (#;userid;user_name...)
             for (let i = 1; i < lineas.length; i++) {
-                const cols = lineas[i].split(':').map(c => c.replace(/"/g, '').trim());
+                const cols = lineas[i].split(';').map(c => c.replace(/"/g, '').trim());
                 if (cols.length < 7) continue;
 
+                // cols[2] = user_name, cols[3] = real_name, cols[5] = car, cols[6] = time3
                 const piloto = cols[2] || cols[3];
                 const coche = cols[5];
                 const tiempo = cols[6];
